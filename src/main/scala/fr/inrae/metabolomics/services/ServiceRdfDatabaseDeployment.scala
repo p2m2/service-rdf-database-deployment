@@ -29,11 +29,6 @@ case object ServiceRdfDatabaseDeployment extends App {
                         opt[String]("category")
                           .required()
                           .action({ case (r, c) => c.copy(category = r) })
-                          .validate(x => x match {
-                                  case "metabohub" => success
-                                  case "ext" => success
-                                  case _ => failure("Category unknown:" + x)
-                          })
                           .valueName("<category>")
                           .text("database category. should be metabohub(default),ext"),
                         opt[String]("database")
@@ -79,8 +74,8 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val bw = new BufferedWriter(new FileWriter(new File(output.getPath)))
 
                 bw.write("#!/bin/bash\n")
-                bw.write(s"hdfs dfs -mkdir ${rootPathDatabasesHdfsCluster}\n")
-                bw.write(s"hdfs dfs -put -f ${files.mkString(" ")} ${rootPathDatabasesHdfsCluster}\n")
+                bw.write(s"hdfs dfs -mkdir ${rootPathDatabasesHdfsCluster}/${category}/${databaseName}\n")
+                bw.write(s"hdfs dfs -put -f ${files.mkString(" ")} ${rootPathDatabasesHdfsCluster}/${category}/${databaseName}\n")
                 bw.close()
                 println("output script file:" + output.getPath)
 
