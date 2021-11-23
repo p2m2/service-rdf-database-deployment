@@ -74,8 +74,8 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val bw = new BufferedWriter(new FileWriter(new File(output.getPath)))
 
                 bw.write("#!/bin/bash\n")
-                bw.write(s"hdfs dfs -mkdir ${rootPathDatabasesHdfsCluster}/${category}/${databaseName}\n")
-                bw.write(s"hdfs dfs -put -f ${files.mkString(" ")} ${rootPathDatabasesHdfsCluster}/${category}/${databaseName}\n")
+                bw.write(s"/usr/local/hadoop/bin/hdfs dfs -mkdir ${rootPathDatabasesHdfsCluster}/${category}/${databaseName}\n")
+                bw.write(s"/usr/local/hadoop/bin/hdfs dfs -put -f ${files.mkString(" ")} ${rootPathDatabasesHdfsCluster}/${category}/${databaseName}\n")
                 bw.close()
                 println("output script file:" + output.getPath)
 
