@@ -9,4 +9,4 @@ fi
 #  Directory inside Dockerfile should correspond to /p2m2tools_repo directory
 JAR=$(find /service/assembly -name "*.jar")
 
-java -cp $JAR $*
+java -cp $JAR fr.inrae.metabolomics.services.ServiceRdfDatabaseDeployment $*

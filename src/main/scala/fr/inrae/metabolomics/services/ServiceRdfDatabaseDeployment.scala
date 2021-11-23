@@ -27,7 +27,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                           .action((x, c) => c.copy(output = x))
                           .text("output script is a required file property"),
                         opt[String]("category")
-                          .optional()
+                          .required()
                           .action({ case (r, c) => c.copy(category = r) })
                           .validate(x => x match {
                                   case "metabohub" => success

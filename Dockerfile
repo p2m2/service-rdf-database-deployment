@@ -3,7 +3,7 @@ FROM openjdk:jdk-bullseye
 LABEL author="Olivier Filangi"
 LABEL mail="olivier.filangi@inrae.fr"
 
-ARG BRANCH=main
+ARG BRANCH=develop
 ARG REPOSITORY_URL=https://github.com/p2m2/service-rdf-database-deployment.git
 
 # install sbt:https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Linux.html
@@ -23,7 +23,7 @@ WORKDIR /service
 
 RUN git checkout ${BRANCH} && sbt assembly
 
-COPY service /usr/bin/
+COPY service /usr/bin/service-rdf-database-deployment
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
