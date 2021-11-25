@@ -1,0 +1,85 @@
+# service-rdf-database-deployment/.gitlab-ci.yml
+# user can extends the .deploy_msd and define the 'script' tag
+#
+# cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
+#
+.deploy_msd:
+  variables:
+    DATABASE: ''
+    CATEGORY: ''
+    RDF_INPUT_FILES: ''
+    RDF_ASKOMICS_INPUT_FILES: ''
+    OUTPUT_SCRIPT_FILE: 'deploy.sh'
+    SSH_HOST_WORK_DIR: '/tmp/CI/'
+
+  image: inraep2m2/service-rdf-database-deployment:1.0.0
+
+  before_script:
+    - |
+      echo "==================================";
+      echo "[info] Test the existence of the variables necessary";
+      [ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1
+      [ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1
+      [ -z "$RDF_INPUT_FILES" ] &&\
+       echo "RDF_INPUT_FILES is Empty" && exit 1
+      [ -z "$OUTPUT_SCRIPT_FILE" ] &&\
+       echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1
+      [ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1
+      [ -z "$SSH_USER" ] && echo "SSH_USER is Empty" && exit 1
+      [ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1
+      [ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1
+      [ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1
+
+  after_script:
+    - echo "==================================";
+    - echo "[info] init SSH key";
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+# cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
+    - export START_DATETIME_XSD=$(date '+%Y-%m-%dT%T')
+    - |
+      echo "##########"
+      echo "###    'Metadata / Push on HDFS' script Generation"
+      echo "##########"
+      echo "Start Date:${START_DATETIME_XSD}"
+      echo "service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+                  --start-date ${START_DATETIME_XSD} \
+                  --category ${CATEGORY}  \
+                  --release ${CI_COMMIT_BRANCH}  \
+                  --database ${DATABASE}  \
+                  --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
+                  --output ${OUTPUT_SCRIPT_FILE} \
+                  ${RDF_INPUT_FILES}"
+
+      service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+                  --start-date ${START_DATETIME_XSD} \
+                  --category ${CATEGORY}  \
+                  --release ${CI_COMMIT_BRANCH}  \
+                  --database ${DATABASE}  \
+                  --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
+                  --output ${OUTPUT_SCRIPT_FILE} \
+                  ${RDF_INPUT_FILES}
+
+      echo "##########"
+      echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
+      echo "##########"
+      ssh $SSH_OPTS $SSH_USER@$SSH_HOST\
+       "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
+      scp -r ${RDF_INPUT_FILES} \
+       $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+      scp ${OUTPUT_SCRIPT_FILE} \
+       $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+
+      echo "##########"
+      echo "###    HDFS Deployment (Data + Metadata)"
+      echo "##########"
+      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+      "bash ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/${OUTPUT_SCRIPT_FILE}"
+
+      echo "##########"
+      echo "###    Clean"
+      echo "##########"
+      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+#      "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"

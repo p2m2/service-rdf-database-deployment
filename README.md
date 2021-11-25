@@ -13,6 +13,8 @@ RDF Konwoledge Graph deployment on the HDFS storage
 - Provenance Generation
   - output directory : rdf/prov/{category}-{database}-{release}-prov.ttl
   
+=> template [gitlab-ci](./msd-deploy.yml)
+
 ## command
 ```sh
 sbt run "--soft <string> --start-date <string> --category [category:metabohub/ext] --database [database] --release <string> --askomics-abstraction <file> --output <script.bash> <file1,file2,...>"
