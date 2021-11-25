@@ -8,11 +8,7 @@
     RDF_INPUT_FILES: ''
     RDF_ASKOMICS_INPUT_FILES: ''
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
-    SSH_OPTS: ''
-    SSH_USER: ''
-    SSH_HOST: ''
     SSH_HOST_WORK_DIR: '/tmp/CI/'
-    SSH_PRIVATE_KEY: ''
 
   image: inraep2m2/service-rdf-database-deployment:1.0.0
 
@@ -38,8 +34,6 @@
     - export START_DATETIME_XSD=$(date '+%Y-%m-%dT%T')
 
   after_script:
-    - echo "deployment - ${CI_COMMIT_BRANCH} - ${CI_DEFAULT_BRANCH} ${CI_REPOSITORY_URL}"
-    # sur $SSH_HOST => faire git config --global http.sslverify "false" if error 'server certificate verification failed. CAfile: none CRLfile: none'
       echo "##########"
       echo "###    'Metadata / Push on HDFS' script Generation"
       echo "##########"
