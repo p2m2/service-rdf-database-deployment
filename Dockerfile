@@ -2,8 +2,10 @@ FROM openjdk:jdk-bullseye
 
 LABEL author="Olivier Filangi"
 LABEL mail="olivier.filangi@inrae.fr"
+ENV RDF4J_VERSION="3.7.4"
+ENV URL_RDF4J="https://www.eclipse.org/downloads/download.php?file=/rdf4j/eclipse-rdf4j-${RDF4J_VERSION}-onejar.jar&r=1"
 
-ARG BRANCH=main
+ARG BRANCH=develop
 ARG REPOSITORY_URL=https://github.com/p2m2/service-rdf-database-deployment.git
 
 # install sbt:https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Linux.html
@@ -23,7 +25,9 @@ WORKDIR /service
 
 RUN git checkout ${BRANCH} && sbt assembly
 
-COPY service /usr/bin/
+RUN wget $URL_RDF4J -O assembly/rdf4j.jar
+
+COPY service /usr/bin/service-rdf-database-deployment
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

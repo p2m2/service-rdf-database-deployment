@@ -1,4 +1,4 @@
-target/
-.bsp/
-.idea/
-assembly/
+target
+.bsp
+.idea
+assembly

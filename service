@@ -1,12 +1,17 @@
 #!/bin/bash
 
+workPath=/service
+
 if [ $# -eq 0 ]
   then
     echo "no commands are defined. Please refer to the list of available actions."
     exit 1
 fi
 
-#  Directory inside Dockerfile should correspond to /p2m2tools_repo directory
-JAR=$(find /service/assembly -name "*.jar")
+[ ! -f "$workPath/assembly/rdf4j.jar" ] && echo "Need RDF4J jar (https://rdf4j.org/download/) ! " 1>&2 && exit 1
+[ ! -f "$workPath/assembly/service-rdf-database-deployment.jar" ] && echo "project need to be assembly !" 1>&2 && exit 1
 
-java -cp $JAR $*
+#  Directory inside Dockerfile should correspond to /p2m2tools_repo directory
+export CLASSPATH="$workPath/assembly/rdf4j.jar:$workPath/assembly/service-rdf-database-deployment.jar"
+
+java fr.inrae.metabolomics.services.ServiceRdfDatabaseDeployment $*
