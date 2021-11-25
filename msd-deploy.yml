@@ -12,7 +12,7 @@
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
-  image: inraep2m2/service-rdf-database-deployment@sha256:18715a5b42c0cd60d914fbca6c6f4041e90f19cb016723d07de06bf31b85911a
+  image: inraep2m2/service-rdf-database-deployment:1.0.1
 
   before_script:
     - |
@@ -67,8 +67,14 @@
       echo "##########"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST\
        "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
+      
       scp -r ${RDF_INPUT_FILES} \
        $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+      
+      [ -z "$RDF_ASKOMICS_INPUT_FILES" ] && \
+        scp -r ${RDF_ASKOMICS_INPUT_FILES} \
+       $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+
       scp ${OUTPUT_SCRIPT_FILE} \
        $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
 
@@ -76,10 +82,10 @@
       echo "###    HDFS Deployment (Data + Metadata)"
       echo "##########"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-      "bash ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/${OUTPUT_SCRIPT_FILE}"
+      "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
 
       echo "##########"
       echo "###    Clean"
       echo "##########"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-#      "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
+      "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
