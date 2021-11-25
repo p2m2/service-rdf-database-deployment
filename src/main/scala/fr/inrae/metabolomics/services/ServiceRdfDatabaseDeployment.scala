@@ -121,7 +121,10 @@ case object ServiceRdfDatabaseDeployment extends App {
 
                 bw.write("#!/bin/bash\n")
 
-                bw.write(s"$hdfs dfs -mkdir ${dirData}\n")
+                bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
+                bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
+                bw.write(s"$hdfs dfs -mkdir -p ${dirProvData}\n")
+
                 bw.write(s"$hdfs dfs -put -f ${files.mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {
