@@ -125,11 +125,11 @@ case object ServiceRdfDatabaseDeployment extends App {
                 bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirProvData}\n")
 
-                bw.write(s"$hdfs dfs -put -f ${files.mkString(" ")} ${dirData}\n")
+                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
-                                bw.write(s"$hdfs dfs -put -f $file " +
+                                bw.write(s"$hdfs dfs -put -f "+"$("+s"basename $file) " +
                                   s"${dirAskOmicsAbstraction}/${category}-${databaseName}-${release}-askomics.ttl\n")
                         case Some( f ) => System.err.println(s"Can not manage this Askomics extension file ${f}")
                         case None => System.err.println(s"None askomics abstraction is provided . ")
