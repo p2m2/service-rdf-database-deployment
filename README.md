@@ -14,8 +14,21 @@ RDF Konwoledge Graph deployment on the HDFS storage
   - output directory : rdf/prov/{category}-{database}-{release}-prov.ttl
   
 ## command
-
+```sh
 sbt run "--soft <string> --start-date <string> --category [category:metabohub/ext] --database [database] --release <string> --askomics-abstraction <file> --output <script.bash> <file1,file2,...>"
+```
+
+```sh
+sbt "run --soft mtbls-metadata-reuse-in-agronomy 
+         --start-date $(date '+%Y-%m-%dT%T')  
+         --category metabohub 
+         --database metabolights 
+         --release test 
+         --output test.sh 
+         --askomics-abstraction test.ttl
+         ./something/test.rdf"
+```
+
 
 ## options
 
@@ -30,5 +43,5 @@ sbt run "--soft <string> --start-date <string> --category [category:metabohub/ex
 ## example
 
 ```bash
-sbt run "--soft mtbls-metadata-reuse-in-agronomy --start-date 2021-07-14T01:01:01Z  --category metabohub --database metabolights --release test --output test.sh ./something/test.rdf
+sbt run "--soft mtbls-metadata-reuse-in-agronomy --start-date 2021-07-14T01:01:01Z  --category metabohub --database metabolights --release test --output test.sh ./something/test.rdf"
 ```
