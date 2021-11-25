@@ -12,4 +12,12 @@ libraryDependencies ++= Seq(
 
 assembly / target := file("assembly")
 assembly / assemblyJarName := "service-rdf-database-deployment.jar"
+
+
+assembly / assemblyMergeStrategy := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
+
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
