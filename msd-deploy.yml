@@ -12,7 +12,7 @@
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.0
+  image: inraep2m2/service-rdf-database-deployment@sha256:18715a5b42c0cd60d914fbca6c6f4041e90f19cb016723d07de06bf31b85911a
 
   before_script:
     - |
