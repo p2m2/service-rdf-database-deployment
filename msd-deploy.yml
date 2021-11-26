@@ -70,8 +70,8 @@
       
       scp -r ${RDF_INPUT_FILES} \
        $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-      
-      [ -z "$RDF_ASKOMICS_INPUT_FILES" ] && \
+
+      [ -f "$RDF_ASKOMICS_INPUT_FILES" ] && \
         scp -r ${RDF_ASKOMICS_INPUT_FILES} \
        $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
 
@@ -82,10 +82,10 @@
       echo "###    HDFS Deployment (Data + Metadata)"
       echo "##########"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-      "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
+       "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
 
       echo "##########"
       echo "###    Clean"
       echo "##########"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-      "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
+       "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
