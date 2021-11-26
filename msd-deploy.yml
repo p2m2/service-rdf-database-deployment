@@ -101,32 +101,22 @@ cache:
       echo "##########"
       echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
       echo "##########"
-
       echo "1"
-
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
-
       echo "2"
-
       scp -r ${RDF_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-
       echo "3"
-
       if [ -f "$RDF_ASKOMICS_INPUT_FILES" ];then
         scp -r ${RDF_ASKOMICS_INPUT_FILES} \
        $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
       fi
-
       echo "4"
-
       scp ${OUTPUT_SCRIPT_FILE} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-
       echo "##########"
       echo "###    HDFS Deployment (Data + Metadata)"
       echo "##########"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
        "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
-
       echo "##########"
       echo "###    Clean"
       echo "##########"
