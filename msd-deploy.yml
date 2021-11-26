@@ -12,7 +12,7 @@
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.1
+  image: inraep2m2/service-rdf-database-deployment:1.0.3
 
   before_script:
     - |
@@ -29,6 +29,7 @@
       [ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1
       [ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1
       [ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1
+      echo $(date '+%Y-%m-%dT%T') > ~/.start_date.txt
 
   after_script:
     - echo "==================================";
@@ -38,22 +39,23 @@
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
     - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
-    - export START_DATETIME_XSD=$(date '+%Y-%m-%dT%T')
+    - export START_DATETIME_XSD=$(cat ~/.start_date.txt)
     - |
       echo "##########"
       echo "###    'Metadata / Push on HDFS' script Generation"
       echo "##########"
       echo "Start Date:${START_DATETIME_XSD}"
-      echo "service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
-                  --start-date ${START_DATETIME_XSD} \
-                  --category ${CATEGORY}  \
-                  --release ${CI_COMMIT_BRANCH}  \
-                  --database ${DATABASE}  \
-                  --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
-                  --output ${OUTPUT_SCRIPT_FILE} \
-                  ${RDF_INPUT_FILES}"
 
-      service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+      if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
+         service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+                           --start-date ${START_DATETIME_XSD} \
+                           --category ${CATEGORY}  \
+                           --release ${CI_COMMIT_BRANCH}  \
+                           --database ${DATABASE}  \
+                           --output ${OUTPUT_SCRIPT_FILE} \
+                           ${RDF_INPUT_FILES}
+      else
+         service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                   --start-date ${START_DATETIME_XSD} \
                   --category ${CATEGORY}  \
                   --release ${CI_COMMIT_BRANCH}  \
@@ -61,6 +63,7 @@
                   --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
                   --output ${OUTPUT_SCRIPT_FILE} \
                   ${RDF_INPUT_FILES}
+      fi
 
       echo "##########"
       echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
