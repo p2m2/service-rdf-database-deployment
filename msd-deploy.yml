@@ -113,5 +113,5 @@ stop_review:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: review/$CI_COMMIT_REF_SLUG
     action: stop
