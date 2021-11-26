@@ -4,9 +4,6 @@
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
 #
 .deploy_msd:
-  only:
-    - tags
-    - master
   variables:
     DATABASE: ''
     CATEGORY: ''
@@ -57,7 +54,7 @@
       [[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1
       [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
       [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
-      
+
       if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                            --start-date ${START_DATETIME_XSD} \
