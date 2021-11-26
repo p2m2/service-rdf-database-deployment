@@ -135,17 +135,18 @@ stop_review:
     - export RELEASE=$(cat .env/release)
     - export DATABASE=$(cat .env/database)
     - export CATEGORY=$(cat .env/category)
+    - export HDFS=/usr/local/hadoop/bin/hdfs
     - |
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-       "/usr/local/hadoop/bin/hdfs dfs -rm $(hdfs dfs -ls \
+       "$HDFS dfs -rm $($HDFS dfs -ls \
        /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld)"
 
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "/usr/local/hadoop/bin/hdfs dfs -rm $(hdfs dfs -ls \
+        "$HDFS dfs -rm $($HDFS dfs -ls \
         /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl)"
 
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "/usr/local/hadoop/bin/hdfs dfs -rm -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
+        "$HDFS dfs -rm -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
 
   when: manual
   environment:
