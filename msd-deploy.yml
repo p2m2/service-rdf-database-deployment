@@ -3,6 +3,14 @@
 #
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
 #
+
+################################################################################
+# cache
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .ssh/
+
 .deploy_msd:
   stage: deploy
   variables:
@@ -115,7 +123,7 @@ stop_review:
   script:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
-    - egrep "hdfs\sdfs\s\-put" $OUTPUT_SCRIPT_FILE | head -n1 |awk '{print $NF}'
+    - echo "hdfs dfs -ls /rdf/prov/*.jsonld | rev | cut -d" " -f1 | rev"
     - egrep "hdfs\sdfs\s\-put" $OUTPUT_SCRIPT_FILE | egrep "askomics" |awk '{print $NF}'
     - egrep "hdfs\sdfs\s\-put" deploy.sh | grep "jsonld" |awk '{print $5}'
 
