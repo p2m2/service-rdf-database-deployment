@@ -11,23 +11,17 @@ cache:
   paths:
     - .ssh/
 
-.deploy_msd:
-  stage: deploy
+.common_deploy:
   variables:
-    DATABASE: ''
     CATEGORY: ''
+    DATABASE: ''
     RDF_INPUT_FILES: ''
     RDF_ASKOMICS_INPUT_FILES: ''
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
   image: inraep2m2/service-rdf-database-deployment:1.0.3
-
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    url: https://$CI_ENVIRONMENT_SLUG.example.com
-    on_stop: stop_review
-
+  tags: [docker]
   before_script:
     - |
       echo "==================================";
@@ -43,33 +37,42 @@ cache:
       [ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1
       [ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1
       [ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1
-      echo $(date '+%Y-%m-%dT%T') > ~/.start_date.txt
-
-  after_script:
-    - echo "==================================";
-    - echo "[info] init SSH key";
-    - mkdir -p ~/.ssh
-    - eval $(ssh-agent -s)
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+      echo $(date '+%Y-%m-%dT%T') > ~/.start_date
+      echo "==================================";
+      echo "[info] init SSH key";
+      mkdir -p ~/.ssh
+      eval $(ssh-agent -s)
+      '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
-    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
-    - export START_DATETIME_XSD=$(cat ~/.start_date.txt)
+      ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
 # user should overload "only" tag to create specific branch release generation
 # one of them should be defined to create a release
 # the default branch produce a SNAPSHOT release
 # if a Tag is defined, a tag name release is created.
+      RELEASE=$CI_COMMIT_BRANCH
+      [[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1
+      [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
+      [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
+      echo $RELEASE > ~/.release
+
+.deploy_msd:
+  stage: deploy
+  image: inraep2m2/service-rdf-database-deployment:1.0.3
+  extends: .common_deploy
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: https://$CI_ENVIRONMENT_SLUG.example.com
+    on_stop: stop_review
+
+  after_script:
+    - export START_DATETIME_XSD=$(cat ~/.start_date)
     - |
       echo "##########"
       echo "###    'Metadata / Push on HDFS' script Generation"
       echo "##########"
       echo "Start Date:${START_DATETIME_XSD}"
 
-      RELEASE=$CI_COMMIT_BRANCH
-      [[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1
-      [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
-      [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
 
-      echo $RELEASE > ~/.release
 
       if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
@@ -121,7 +124,7 @@ cache:
 
 stop_review:
   stage: deploy
-  tags: [docker]
+  extends: .common_deploy
   script:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
