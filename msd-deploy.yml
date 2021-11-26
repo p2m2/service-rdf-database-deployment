@@ -4,6 +4,9 @@
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
 #
 .deploy_msd:
+  only:
+    - tags
+    - master
   variables:
     DATABASE: ''
     CATEGORY: ''
@@ -45,12 +48,26 @@
       echo "###    'Metadata / Push on HDFS' script Generation"
       echo "##########"
       echo "Start Date:${START_DATETIME_XSD}"
+# user should overload "only" tag to create specific branch release generation
+      RELEASE=$CI_COMMIT_BRANCH
 
+# one of them should be defined to create a release
+      [[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1
+
+# the default branch produce a SNAPSHOT release
+
+      [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
+
+# if a Tag is defined, a tag name release is created.
+      [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
+
+## Generate a script to automate deployment on the HDFS cluster
+        
       if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                            --start-date ${START_DATETIME_XSD} \
                            --category ${CATEGORY}  \
-                           --release ${CI_COMMIT_BRANCH}  \
+                           --release ${RELEASE}  \
                            --database ${DATABASE}  \
                            --output ${OUTPUT_SCRIPT_FILE} \
                            ${RDF_INPUT_FILES}
@@ -58,7 +75,7 @@
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                   --start-date ${START_DATETIME_XSD} \
                   --category ${CATEGORY}  \
-                  --release ${CI_COMMIT_BRANCH}  \
+                  --release ${RELEASE}  \
                   --database ${DATABASE}  \
                   --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
                   --output ${OUTPUT_SCRIPT_FILE} \
