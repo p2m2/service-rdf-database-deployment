@@ -102,9 +102,15 @@
 
 stop_review:
   stage: deploy
+  tags: [docker]
   script:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
+    - |
+      egrep "hdfs\sdfs\s\-put" $OUTPUT_SCRIPT_FILE | head -n1 |awk '{print $NF}'
+      egrep "hdfs\sdfs\s\-put" $OUTPUT_SCRIPT_FILE | egrep "askomics" |awk '{print $NF}'
+      egrep "hdfs\sdfs\s\-put" deploy.sh | grep "jsonld" |awk '{print $5}'
+      
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     action: stop
