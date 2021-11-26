@@ -17,7 +17,7 @@
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     url: https://$CI_ENVIRONMENT_SLUG.example.com
-    on_stop: .stop_review
+    on_stop: stop_review
 
   before_script:
     - |
@@ -108,8 +108,7 @@
        "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
 
 
-.stop_review:
-  stage: deploy
+stop_review:
   script:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
