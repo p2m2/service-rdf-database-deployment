@@ -77,6 +77,8 @@
       echo $RDF_ASKOMICS_INPUT_FILES
       ls -ail studies
       echo "========================================================="
+      [ -z "$RDF_ASKOMICS_INPUT_FILES" ] && echo "!!!!!!!!!!!!!!!!!!!!!!!! EXIST !!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+      echo "=========================================================222222"
       [ -z "$RDF_ASKOMICS_INPUT_FILES" ] && \
         scp -r ${RDF_ASKOMICS_INPUT_FILES} \
        $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
