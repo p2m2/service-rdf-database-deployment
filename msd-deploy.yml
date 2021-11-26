@@ -45,14 +45,25 @@
       echo "###    'Metadata / Push on HDFS' script Generation"
       echo "##########"
       echo "Start Date:${START_DATETIME_XSD}"
-      service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+
+      if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
+         service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+                           --start-date ${START_DATETIME_XSD} \
+                           --category ${CATEGORY}  \
+                           --release ${CI_COMMIT_BRANCH}  \
+                           --database ${DATABASE}  \
+                           --output ${OUTPUT_SCRIPT_FILE} \
+                           ${RDF_INPUT_FILES}
+      else
+         service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                   --start-date ${START_DATETIME_XSD} \
                   --category ${CATEGORY}  \
                   --release ${CI_COMMIT_BRANCH}  \
                   --database ${DATABASE}  \
-                  --askomics-abstraction "${RDF_ASKOMICS_INPUT_FILES}" \
+                  --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
                   --output ${OUTPUT_SCRIPT_FILE} \
                   ${RDF_INPUT_FILES}
+      fi
 
       echo "##########"
       echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
