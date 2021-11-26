@@ -132,7 +132,6 @@ stop_review:
   extends: .common_deploy
   script:
     - echo "Remove review app"
-    - cat $OUTPUT_SCRIPT_FILE
     - export RELEASE=$(cat .env/release)
     - export DATABASE=$(cat .env/database)
     - export CATEGORY=$(cat .env/category)
