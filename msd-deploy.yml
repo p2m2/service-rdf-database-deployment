@@ -75,6 +75,7 @@
       pwd
       ls -ail
       echo $RDF_ASKOMICS_INPUT_FILES
+      ls -ail studies
       echo "========================================================="
       [ -z "$RDF_ASKOMICS_INPUT_FILES" ] && \
         scp -r ${RDF_ASKOMICS_INPUT_FILES} \
