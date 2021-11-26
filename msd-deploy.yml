@@ -135,18 +135,22 @@ stop_review:
     - export RELEASE=$(cat .env/release)
     - export DATABASE=$(cat .env/database)
     - export CATEGORY=$(cat .env/category)
-    - export HDFS=/usr/local/hadoop/bin/hdfs
+    - export HDFS="/usr/local/hadoop/bin/hdfs"
     - |
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-       "$HDFS dfs -rm $($HDFS dfs -ls \
-       /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld)"
+      f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+        "$HDFS dfs -ls \
+        /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld 2>/dev/null | rev | cut -d' ' -f1 | rev")
+
+      [ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"
+
+      f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+        "$HDFS dfs -ls \
+            /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl 2>/dev/null | rev | cut -d' ' -f1 | rev")
+
+      [ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"
 
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "$HDFS dfs -rm $($HDFS dfs -ls \
-        /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl)"
-
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "$HDFS dfs -rm -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
+        "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
 
   when: manual
   environment:
