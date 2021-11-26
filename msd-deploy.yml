@@ -4,6 +4,7 @@
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
 #
 .deploy_msd:
+  stage: deploy
   variables:
     DATABASE: ''
     CATEGORY: ''
@@ -109,6 +110,7 @@
 
 
 stop_review:
+  stage: deploy
   script:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
