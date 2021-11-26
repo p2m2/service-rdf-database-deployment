@@ -92,5 +92,5 @@
       echo "##########"
       echo "###    Clean"
       echo "##########"
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+#      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
 #      "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
