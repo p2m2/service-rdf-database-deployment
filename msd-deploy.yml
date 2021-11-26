@@ -61,7 +61,7 @@ cache:
       [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
       [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
 
-      mkdir .env
+      mkdir -p .env
       echo $RELEASE  > .env/release
       echo $DATABASE > .env/database
       echo $CATEGORY > .env/category
