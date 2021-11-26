@@ -69,6 +69,8 @@ cache:
       [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
       [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
 
+      echo $RELEASE > ~/.release
+
       if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                            --start-date ${START_DATETIME_XSD} \
@@ -123,9 +125,8 @@ stop_review:
   script:
     - echo "Remove review app"
     - cat $OUTPUT_SCRIPT_FILE
-    - echo "hdfs dfs -ls /rdf/prov/*.jsonld | rev | cut -d" " -f1 | rev"
-    - egrep "hdfs\sdfs\s\-put" $OUTPUT_SCRIPT_FILE | egrep "askomics" |awk '{print $NF}'
-    - egrep "hdfs\sdfs\s\-put" deploy.sh | grep "jsonld" |awk '{print $5}'
+    - export RELEASE=$(cat ~/.release)
+    - echo "hdfs dfs -ls /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld | rev | cut -d" " -f1 | rev"
 
   when: manual
   environment:
