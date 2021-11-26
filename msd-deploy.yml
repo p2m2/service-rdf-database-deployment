@@ -135,7 +135,17 @@ stop_review:
     - export RELEASE=$(cat .env/release)
     - export DATABASE=$(cat .env/database)
     - export CATEGORY=$(cat .env/category)
-    - echo "hdfs dfs -ls /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld | rev | cut -d" " -f1 | rev"
+    - |
+      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+       "hdfs dfs -rm $(hdfs dfs -ls \
+       /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld)"
+
+      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+        "hdfs dfs -rm $(hdfs dfs -ls \
+        /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl)"
+
+      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
+        "hdfs dfs -rm -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
 
   when: manual
   environment:
