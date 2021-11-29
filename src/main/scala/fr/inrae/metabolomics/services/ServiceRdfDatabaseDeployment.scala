@@ -124,7 +124,11 @@ case object ServiceRdfDatabaseDeployment extends App {
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirProvData}\n")
-
+                files.filter(
+                        x => x.matches("^(http|https|ftp)://.*$")
+                ).foreach(
+                        x => bw.write(s"wget $x\n")
+                )
                 bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {

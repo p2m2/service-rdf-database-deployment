@@ -67,7 +67,7 @@ cache:
     - echo "[info] Test the existence of the variables necessary";
     - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
     - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
-    - '[ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1'
+    - '[ -z "$RDF_INPUT_FILES" ] && RDF_INPUT_FILES=$(cat .env/RDF_INPUT_FILES) && [ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1'
     - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1'
 
     - echo "##########"
@@ -97,7 +97,8 @@ cache:
     - echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
     - echo "##########"
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
-    - scp -r ${RDF_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+    - RDF_LOCAL_FILES=$(echo $RDF_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
+    - scp -r ${RDF_LOCAL_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
     - |
       if [ -f "$RDF_ASKOMICS_INPUT_FILES" ];then
         scp -r ${RDF_ASKOMICS_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
