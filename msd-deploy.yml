@@ -26,9 +26,9 @@ cache:
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
     - '[ -z "$SSH_USER" ] && echo "SSH_USER is Empty" && exit 1'
-    - [ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1
-    - [ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1
-    - [ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1
+    - '[ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1'
+    - '[ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1'
+    - '[ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1'
     - echo $(date '+%Y-%m-%dT%T') > ~/.start_date
     - echo "==================================";
     - echo "[info] init SSH key";
@@ -50,23 +50,23 @@ cache:
   after_script:
     - ssh-add -l
     - export START_DATETIME_XSD=$(cat ~/.start_date)
-# user should overload "only" tag to create specific branch release generation
-# one of them should be defined to create a release
-# the default branch produce a SNAPSHOT release
-# if a Tag is defined, a tag name release is created.
+    # user should overload "only" tag to create specific branch release generation
+    # one of them should be defined to create a release
+    # the default branch produce a SNAPSHOT release
+    # if a Tag is defined, a tag name release is created.
     - RELEASE=$CI_COMMIT_BRANCH
-    - [[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1
-    - [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
-    - [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
+    - '[[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1'
+    - '[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"'
+    - '[ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME'
     - mkdir -p .env
     - echo $RELEASE  > .env/release
     - echo $DATABASE > .env/database
     - echo $CATEGORY > .env/category
     - echo "[info] Test the existence of the variables necessary";
-    - [ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1
-    - [ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1
-    - [ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1
-    - [ -z "$OUTPUT_SCRIPT_FILE" ] && echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1
+    - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
+    - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
+    - '[ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1'
+    - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1'
 
     - echo "##########"
     - echo "###    'Metadata / Push on HDFS' script Generation"
@@ -125,14 +125,14 @@ stop_review:
         "$HDFS dfs -ls \
         /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld 2>/dev/null | rev | cut -d' ' -f1 | rev")
 
-    - [ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"
+    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"'
 
     - |
       f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
         "$HDFS dfs -ls \
             /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl 2>/dev/null | rev | cut -d' ' -f1 | rev")
 
-      [ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"
+    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"'
 
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
 
