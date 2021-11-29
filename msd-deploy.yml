@@ -36,7 +36,6 @@ cache:
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
-    - ssh-add -l
 
 .deploy_msd:
   stage: deploy
@@ -52,7 +51,6 @@ cache:
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
-    - ssh-add -l
     - export START_DATETIME_XSD=$(cat ~/.start_date)
     # user should overload "only" tag to create specific branch release generation
     # one of them should be defined to create a release
@@ -98,7 +96,6 @@ cache:
     - echo "##########"
     - echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
     - echo "##########"
-    - echo "1 $SSH_USER@$SSH_HOST"
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
     - scp -r ${RDF_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
     - |
