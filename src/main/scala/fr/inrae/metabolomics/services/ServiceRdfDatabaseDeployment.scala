@@ -129,7 +129,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                         x => x.matches("^(http|https|ftp)://.*$")
                 ).foreach(
                         x => {
-                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + "$(dirname "+x+")\n")
+                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + " $(dirname "+x+")\n")
                         }
                 )
                 bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
