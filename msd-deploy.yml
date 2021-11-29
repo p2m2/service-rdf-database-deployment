@@ -69,7 +69,6 @@ cache:
     - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
     - '[ -z "$RDF_INPUT_FILES" ] && RDF_INPUT_FILES=$(cat .env/RDF_INPUT_FILES) && [ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1'
     - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1'
-
     - echo "##########"
     - echo "###    'Metadata / Push on HDFS' script Generation"
     - echo "##########"
