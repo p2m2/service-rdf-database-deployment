@@ -21,28 +21,24 @@ cache:
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.4
+  image: inraep2m2/service-rdf-database-deployment:delete_stage
   tags: [docker]
   before_script:
-    - |
-      [ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1
-      [ -z "$SSH_USER" ] && echo "SSH_USER is Empty" && exit 1
-      [ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1
-      [ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1
-      [ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1
-      echo $(date '+%Y-%m-%dT%T') > ~/.start_date
-      echo "==================================";
-      echo "[info] init SSH key";
-      mkdir -p ~/.ssh
-      eval $(ssh-agent -s)
-      [ -f /.dockerenv ] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-
-      # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
-      ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
+    - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
+    - '[ -z "$SSH_USER" ] && echo "SSH_USER is Empty" && exit 1'
+    - '[ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1'
+    - '[ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1'
+    - '[ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1'
+    - echo $(date '+%Y-%m-%dT%T') > ~/.start_date
+    - echo "==================================";
+    - echo "[info] init SSH key";
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
 
 .deploy_msd:
   stage: deploy
-  image: inraep2m2/service-rdf-database-deployment:1.0.3
   extends: .common_deploy
   environment:
     name: review/$CI_COMMIT_REF_SLUG
@@ -50,35 +46,33 @@ cache:
     on_stop: stop_review
 
   after_script:
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
     - export START_DATETIME_XSD=$(cat ~/.start_date)
+    # user should overload "only" tag to create specific branch release generation
+    # one of them should be defined to create a release
+    # the default branch produce a SNAPSHOT release
+    # if a Tag is defined, a tag name release is created.
+    - RELEASE=$CI_COMMIT_BRANCH
+    - '[[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1'
+    - '[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"'
+    - '[ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME'
+    - mkdir -p .env
+    - echo $RELEASE  > .env/release
+    - echo $DATABASE > .env/database
+    - echo $CATEGORY > .env/category
+    - echo "[info] Test the existence of the variables necessary";
+    - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
+    - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
+    - '[ -z "$RDF_INPUT_FILES" ] && RDF_INPUT_FILES=$(cat .env/RDF_INPUT_FILES) && [ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1'
+    - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1'
+    - echo "##########"
+    - echo "###    'Metadata / Push on HDFS' script Generation"
+    - echo "##########"
+    - echo "Start Date:${START_DATETIME_XSD}"
     - |
-      # user should overload "only" tag to create specific branch release generation
-      # one of them should be defined to create a release
-      # the default branch produce a SNAPSHOT release
-      # if a Tag is defined, a tag name release is created.
-      RELEASE=$CI_COMMIT_BRANCH
-      [[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1
-      [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"
-      [ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME
-
-      mkdir -p .env
-      echo $RELEASE  > .env/release
-      echo $DATABASE > .env/database
-      echo $CATEGORY > .env/category
-      echo "==================================";
-      echo "[info] Test the existence of the variables necessary";
-      [ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1
-      [ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1
-      [ -z "$RDF_INPUT_FILES" ] &&\
-      echo "RDF_INPUT_FILES is Empty" && exit 1
-      [ -z "$OUTPUT_SCRIPT_FILE" ] &&\
-      echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1
-
-      echo "##########"
-      echo "###    'Metadata / Push on HDFS' script Generation"
-      echo "##########"
-      echo "Start Date:${START_DATETIME_XSD}"
-
       if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                            --start-date ${START_DATETIME_XSD} \
@@ -97,35 +91,31 @@ cache:
                   --output ${OUTPUT_SCRIPT_FILE} \
                   ${RDF_INPUT_FILES}
       fi
-
-      echo "##########"
-      echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
-      echo "##########"
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST\
-       "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
-
-      scp -r ${RDF_INPUT_FILES} \
-       $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-
-      [ -f "$RDF_ASKOMICS_INPUT_FILES" ] && \
-        scp -r ${RDF_ASKOMICS_INPUT_FILES} \
-       $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-
-      scp ${OUTPUT_SCRIPT_FILE} \
-       $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-
-      echo "##########"
-      echo "###    HDFS Deployment (Data + Metadata)"
-      echo "##########"
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-       "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
-
-      echo "##########"
-      echo "###    Clean"
-      echo "##########"
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-       "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
-
+    - echo "##########"
+    - echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
+    - echo "##########"
+    - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
+    - RDF_LOCAL_FILES=$(echo $RDF_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
+    - |
+      if [ -n "$RDF_LOCAL_FILES" ];then
+        scp -r ${RDF_LOCAL_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+      fi
+    - |
+      if [ -n "$RDF_ASKOMICS_INPUT_FILES" ];then
+        RDF_ASKOMICS_LOCAL_FILES=$(echo $RDF_ASKOMICS_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
+        if [ -n "$RDF_ASKOMICS_LOCAL_FILES" ]; then
+          scp -r ${RDF_ASKOMICS_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+        fi
+      fi
+    - scp ${OUTPUT_SCRIPT_FILE} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+    - echo "##########"
+    - echo "###    HDFS Deployment (Data + Metadata)"
+    - echo "##########"
+    - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
+    - echo "##########"
+    - echo "###    Clean"
+    - echo "##########"
+    - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
 
 stop_review:
   stage: deploy
@@ -141,16 +131,16 @@ stop_review:
         "$HDFS dfs -ls \
         /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld 2>/dev/null | rev | cut -d' ' -f1 | rev")
 
-      [ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"
+    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"'
 
+    - |
       f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
         "$HDFS dfs -ls \
             /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl 2>/dev/null | rev | cut -d' ' -f1 | rev")
 
-      [ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"
+    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"'
 
-      ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
+    - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
 
   when: manual
   environment:

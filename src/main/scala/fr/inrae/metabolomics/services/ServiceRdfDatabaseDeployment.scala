@@ -119,16 +119,25 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val dirAskOmicsAbstraction =s"${rootPathDatabasesHdfsCluster}/askomics/"
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
 
+                val wgetOpt = "-r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
 
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirProvData}\n")
-
+                files.filter(
+                        x => x.matches("^(http|https|ftp)://.*$")
+                ).foreach(
+                        x => {
+                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + "$(dirname "+x+")\n")
+                        }
+                )
                 bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
+                                if ( file.matches("^(http|https|ftp)://.*$"))
+                                        bw.write(s"wget $file\n")
                                 bw.write(s"$hdfs dfs -put -f "+"$("+s"basename $file) " +
                                   s"${dirAskOmicsAbstraction}/${category}-${databaseName}-${release}-askomics.ttl\n")
                         case Some( f ) => System.err.println(s"Can not manage this Askomics extension file ${f}")
