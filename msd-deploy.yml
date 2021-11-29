@@ -98,10 +98,17 @@ cache:
     - echo "##########"
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
     - RDF_LOCAL_FILES=$(echo $RDF_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
-    - scp -r ${RDF_LOCAL_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
     - |
-      if [ -f "$RDF_ASKOMICS_INPUT_FILES" ];then
-        scp -r ${RDF_ASKOMICS_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+      if [ -n "RDF_LOCAL_FILES" ];then
+        scp -r ${RDF_LOCAL_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+      fi
+    -
+    - |
+      if [ -n "$RDF_ASKOMICS_INPUT_FILES" ];then
+        RDF_ASKOMICS_LOCAL_FILES=$(echo $RDF_ASKOMICS_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
+        if [ -n "$RDF_ASKOMICS_LOCAL_FILES" ]; then
+          scp -r ${RDF_ASKOMICS_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
+        fi
       fi
     - scp ${OUTPUT_SCRIPT_FILE} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
     - echo "##########"
