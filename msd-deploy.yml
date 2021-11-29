@@ -20,7 +20,6 @@ cache:
     RDF_ASKOMICS_INPUT_FILES: ''
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
-    SSH_OPTS: ' -q -t -vv '
 
   image: inraep2m2/service-rdf-database-deployment:1.0.4
   tags: [docker]
@@ -102,7 +101,7 @@ cache:
       echo "##########"
       echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
       echo "##########"
-      echo "1"
+      echo "1 $SSH_USER@$SSH_HOST"
       ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
       echo "2"
       scp -r ${RDF_INPUT_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
@@ -135,7 +134,7 @@ stop_review:
     - export CATEGORY=$(cat .env/category)
     - export HDFS="/usr/local/hadoop/bin/hdfs"
     - |
-      echo "======= $SSH_OPTS $SSH_USER@$SSH_HOST ============"
+     
       f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
         "$HDFS dfs -ls \
         /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld 2>/dev/null | rev | cut -d' ' -f1 | rev")
