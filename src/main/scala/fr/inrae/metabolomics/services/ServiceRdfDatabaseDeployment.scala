@@ -82,7 +82,7 @@ case object ServiceRdfDatabaseDeployment extends App {
         println("# == service database deployment / Metabolomics Semantic Data lake / MetaboHUB == ")
         // if you want to access the command line args:
         println("# -- args : ");
-        args.foreach(print)
+        args.foreach(x => print(x+" "))
         println("")
         val script =
                 """
@@ -119,7 +119,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val dirAskOmicsAbstraction =s"${rootPathDatabasesHdfsCluster}/askomics/"
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
 
-                val wgetOpt = "-r -nd --no-parent -e robots=off"
+                val wgetOpt = "-nv -r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
 
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
@@ -129,10 +129,12 @@ case object ServiceRdfDatabaseDeployment extends App {
                         x => x.matches("^(http|https|ftp)://.*$")
                 ).foreach(
                         x => {
-                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + "$(dirname "+x+")\n")
+                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + " $(dirname "+x+")/\n")
                         }
                 )
-                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
+                // unzip if needed
+                bw.write("gunzip -q $(ls *.gz 2>/dev/null)\n")
+                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x.replaceAll(".gz$","")+")").mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
