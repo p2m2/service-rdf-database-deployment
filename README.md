@@ -21,17 +21,12 @@ sbt run "--soft <string> --start-date <string> --category [category:metabohub/ex
 ```
 
 ```sh
-sbt "run --soft mtbls-metadata-reuse-in-agronomy 
-         --start-date $(date '+%Y-%m-%dT%T')  
-         --category metabohub 
-         --database metabolights 
-         --release test 
-         --output test.sh 
-         --askomics-abstraction test.ttl
-         ./something/test.rdf"
+sbt "run --soft mtbls-metadata-reuse-in-agronomy --start-date $(date '+%Y-%m-%dT%T')  --category metabohub --database metabolights --release test --output test.sh --askomics-abstraction test.ttl ./something/test.rdf"
 ```
 
-
+```sh
+sbt "run --soft mtbls-metadata-reuse-in-agronomy --start-date $(date '+%Y-%m-%dT%T')  --category metabohub --database metabolights --release test --output test.sh --askomics-abstraction http://test*.ttl http://something/test.rdf.gz"
+```
 ## options
 
 - soft : software in charge of generation

@@ -82,7 +82,7 @@ case object ServiceRdfDatabaseDeployment extends App {
         println("# == service database deployment / Metabolomics Semantic Data lake / MetaboHUB == ")
         // if you want to access the command line args:
         println("# -- args : ");
-        args.foreach(print)
+        args.foreach(x => print(x+" "))
         println("")
         val script =
                 """
@@ -132,7 +132,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                                 bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + " $(dirname "+x+")\n")
                         }
                 )
-                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
+                // unzip if needed
+                bw.write("gunzip -q $(ls *.gz 2>/dev/null)\n")
+                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x.replaceAll(".gz$","")+")").mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
