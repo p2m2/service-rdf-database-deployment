@@ -20,6 +20,7 @@ cache:
     RDF_ASKOMICS_INPUT_FILES: ''
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
+    SSH_OPTS: ' -q -t -vv '
 
   image: inraep2m2/service-rdf-database-deployment:1.0.4
   tags: [docker]
