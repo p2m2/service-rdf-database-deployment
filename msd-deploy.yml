@@ -102,7 +102,6 @@ cache:
       if [ -n "RDF_LOCAL_FILES" ];then
         scp -r ${RDF_LOCAL_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
       fi
-    -
     - |
       if [ -n "$RDF_ASKOMICS_INPUT_FILES" ];then
         RDF_ASKOMICS_LOCAL_FILES=$(echo $RDF_ASKOMICS_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
