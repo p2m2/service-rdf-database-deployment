@@ -48,6 +48,10 @@ cache:
     on_stop: stop_review
 
   after_script:
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
     - ssh-add -l
     - export START_DATETIME_XSD=$(cat ~/.start_date)
     # user should overload "only" tag to create specific branch release generation
