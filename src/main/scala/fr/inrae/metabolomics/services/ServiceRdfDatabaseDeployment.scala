@@ -82,7 +82,7 @@ case object ServiceRdfDatabaseDeployment extends App {
         println("# == service database deployment / Metabolomics Semantic Data lake / MetaboHUB == ")
         // if you want to access the command line args:
         println("# -- args : ");
-        args.foreach(print)
+        args.foreach(x => print(x+" "))
         println("")
         val script =
                 """
@@ -119,16 +119,27 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val dirAskOmicsAbstraction =s"${rootPathDatabasesHdfsCluster}/askomics/"
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
 
+                val wgetOpt = "-nv -r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
 
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirProvData}\n")
-
-                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
+                files.filter(
+                        x => x.matches("^(http|https|ftp)://.*$")
+                ).foreach(
+                        x => {
+                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + " $(dirname "+x+")/\n")
+                        }
+                )
+                // unzip if needed
+                bw.write("gunzip -q $(ls *.gz 2>/dev/null)\n")
+                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x.replaceAll(".gz$","")+")").mkString(" ")} ${dirData}\n")
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
+                                if ( file.matches("^(http|https|ftp)://.*$"))
+                                        bw.write(s"wget $file\n")
                                 bw.write(s"$hdfs dfs -put -f "+"$("+s"basename $file) " +
                                   s"${dirAskOmicsAbstraction}/${category}-${databaseName}-${release}-askomics.ttl\n")
                         case Some( f ) => System.err.println(s"Can not manage this Askomics extension file ${f}")

@@ -20,6 +20,7 @@ workflows:
             branches:
               only:
                 - develop
+#                - delete_stage
 
       # all tags are build and push on dockerhub !
       - build_tag_latest:
