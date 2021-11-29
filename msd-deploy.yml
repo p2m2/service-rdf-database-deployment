@@ -21,7 +21,7 @@ cache:
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.4
+  image: inraep2m2/service-rdf-database-deployment:delete_stage
   tags: [docker]
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
