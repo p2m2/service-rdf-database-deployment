@@ -36,9 +36,11 @@ cache:
       mkdir -p ~/.ssh
       eval $(ssh-agent -s)
       [ -f /.dockerenv ] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-
+      cat ~/.ssh/config
+      echo "Ok?"
       # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
       ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
+      echo "End"
 
 .deploy_msd:
   stage: deploy
