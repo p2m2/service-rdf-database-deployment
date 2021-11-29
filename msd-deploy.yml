@@ -134,6 +134,7 @@ stop_review:
     - export CATEGORY=$(cat .env/category)
     - export HDFS="/usr/local/hadoop/bin/hdfs"
     - |
+      echo "======= $SSH_OPTS $SSH_USER@$SSH_HOST ============"
       f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
         "$HDFS dfs -ls \
         /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld 2>/dev/null | rev | cut -d' ' -f1 | rev")
