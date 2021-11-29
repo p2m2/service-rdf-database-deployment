@@ -119,6 +119,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val dirAskOmicsAbstraction =s"${rootPathDatabasesHdfsCluster}/askomics/"
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
 
+                val wgetOpt = "-r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
 
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
@@ -127,7 +128,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                 files.filter(
                         x => x.matches("^(http|https|ftp)://.*$")
                 ).foreach(
-                        x => bw.write(s"wget $x\n")
+                        x => {
+                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + "$(dirname "+x+")\n")
+                        }
                 )
                 bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x+")").mkString(" ")} ${dirData}\n")
 

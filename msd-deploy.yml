@@ -39,7 +39,6 @@ cache:
 
 .deploy_msd:
   stage: deploy
-  image: inraep2m2/service-rdf-database-deployment:1.0.3
   extends: .common_deploy
   environment:
     name: review/$CI_COMMIT_REF_SLUG
@@ -98,7 +97,7 @@ cache:
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
     - RDF_LOCAL_FILES=$(echo $RDF_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
     - |
-      if [ -n "RDF_LOCAL_FILES" ];then
+      if [ -n "$RDF_LOCAL_FILES" ];then
         scp -r ${RDF_LOCAL_FILES} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
       fi
     - |
