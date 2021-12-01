@@ -125,6 +125,9 @@ stop_review:
     - export RELEASE=$(cat .env/release)
     - export DATABASE=$(cat .env/database)
     - export CATEGORY=$(cat .env/category)
+    - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
+    - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
+    - '[ -z "$RELEASE" ] && echo "RELEASE is Empty" && exit 1'
     - export HDFS="/usr/local/hadoop/bin/hdfs"
     - |
       f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
