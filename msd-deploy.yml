@@ -4,24 +4,29 @@
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
 #
 
+stages:
+  - version
+  - deploy
+
+variables:
+  CACHE_FALLBACK_KEY: fallback-key
+
 ################################################################################
 # cache
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .ssh/
-    - .env/
 
 .common_deploy:
   variables:
-    CATEGORY: ''
-    DATABASE: ''
-    RDF_INPUT_FILES: ''
-    RDF_ASKOMICS_INPUT_FILES: ''
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
+    TXT_RED: "\e[31m"
+    TXT_CLEAR: "\e[0m"
+    TXT_YELLOW: "\e[33m"
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.5
+  image: inraep2m2/service-rdf-database-deployment:1.0.6
   tags: [docker]
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
@@ -29,45 +34,72 @@ cache:
     - '[ -z "$SSH_HOST" ] && echo "SSH_HOST is Empty" && exit 1'
     - '[ -z "$SSH_HOST_WORK_DIR" ] && echo "SSH_HOST_WORK_DIR is Empty" && exit 1'
     - '[ -z "$SSH_PRIVATE_KEY" ] && echo "SSH_PRIVATE_KEY is Empty" && exit 1'
-    - echo $(date '+%Y-%m-%dT%T') > ~/.start_date
     - echo "==================================";
     - echo "[info] init SSH key";
     - mkdir -p ~/.ssh
+    - export START_DATETIME_XSD=$(echo $(date '+%Y-%m-%dT%T'))
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
+    # Get VERSION value
+    - '[ -z "$VERSION" ] && echo -e "${TXT_RED}Empty value" && exit 1'
+    - '[ -z "$DATABASE" ] && echo -e "${TXT_RED}DATABASE is Empty" && exit 1'
+    - '[ -z "$CATEGORY" ] && echo -e "${TXT_RED}CATEGORY is Empty" && exit 1'
+    - '[ -z "$RDF_INPUT_FILES" ] && echo -e "${TXT_RED}RDF_INPUT_FILES is Empty" && exit 1'
+    - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo -e "${TXT_RED}OUTPUT_SCRIPT_FILE is Empty" && exit 1'
+    - '[ -z "$SSH_HOST_WORK_DIR" ] && echo -e "${TXT_RED}SSH_HOST_WORK_DIR is Empty" && exit 1'
 
-.deploy_msd:
+  dependencies: [fetch_info_database]
+
+check_version_create_tag:
   stage: deploy
   extends: .common_deploy
+
+  script:
+    # user should create a tag release to build/create a new release generation
+    # if a Tag is defined, a tag name release is created.
+    - 'echo "=============================>>> VERSION : $VERSION"'
+    - 'echo "=============================>>> DATABASE : $DATABASE"'
+    - 'echo "=============================>>> CATEGORY : $CATEGORY"'
+    # If TAG release context => Build the database on MSD
+    # othewise => manage a creation of a TAG releas
+    #           - Check if TAG exist with API
+    #          if exist (variable is not empty) => nothing to do because the tag exist !
+    #            otherwise :
+    #            - a tag is create to run a new pipeline
+    #
+    - |
+      if [ -z "$CI_COMMIT_TAG" ]; then
+        echo " -- Check with API -- "
+
+        RES_CURL_VERSION=$(curl -s --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}"\
+          "${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags" |\
+            jq ".[].name" | grep $VERSION 2>/dev/null || true)
+
+        if [ -n "$RES_CURL_VERSION" ]; then
+          echo -e "${TXT_YELLOW}Release $VERSION exist."
+        else
+          echo -e "${TXT_YELLOW} ==== new version : $VERSION ";
+          curl -s --request POST \
+             --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}"\
+               "${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags?tag_name=${VERSION}&ref=${CI_DEFAULT_BRANCH}"
+         fi
+      fi
+
+deployment_release :
+  stage: deploy
+  extends: .common_deploy
+  except:
+    - branches
   environment:
     name: review/$CI_COMMIT_REF_SLUG
-    url: https://$CI_ENVIRONMENT_SLUG.example.com
+    url: https://$CI_ENVIRONMENT_SLUG.gitlab_pfem.fr
     on_stop: stop_review
 
-  after_script:
-    - mkdir -p ~/.ssh
-    - eval $(ssh-agent -s)
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
-    - export START_DATETIME_XSD=$(cat ~/.start_date)
-    # user should overload "only" tag to create specific branch release generation
-    # one of them should be defined to create a release
-    # the default branch produce a SNAPSHOT release
-    # if a Tag is defined, a tag name release is created.
-    - RELEASE=$CI_COMMIT_BRANCH
-    - '[[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1'
-    - '[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"'
-    - '[ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME'
-    - mkdir -p .env
-    - echo $RELEASE  > .env/release
-    - echo $DATABASE > .env/database
-    - echo $CATEGORY > .env/category
+  script:
+    # Build is avalable only for TAG creation (means => $CI_COMMIT_REF_NAME is not empty)
+    - RELEASE=$CI_COMMIT_REF_NAME
     - echo "[info] Test the existence of the variables necessary";
-    - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
-    - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
-    - '[ -z "$RDF_INPUT_FILES" ] && RDF_INPUT_FILES=$(cat .env/RDF_INPUT_FILES) && [ -z "$RDF_INPUT_FILES" ] && echo "RDF_INPUT_FILES is Empty" && exit 1'
-    - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo "OUTPUT_SCRIPT_FILE is Empty" && exit 1'
     - echo "##########"
     - echo "###    'Metadata / Push on HDFS' script Generation"
     - echo "##########"
@@ -121,10 +153,10 @@ stop_review:
   stage: deploy
   extends: .common_deploy
   script:
-    - echo "Remove review app"
-    - export RELEASE=$(cat .env/release)
-    - export DATABASE=$(cat .env/database)
-    - export CATEGORY=$(cat .env/category)
+    - RELEASE=$CI_COMMIT_TAG
+    - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
+    - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
+    - '[ -z "$RELEASE" ] && echo "RELEASE is Empty" && exit 1'
     - export HDFS="/usr/local/hadoop/bin/hdfs"
     - |
       f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \

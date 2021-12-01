@@ -11,7 +11,7 @@ ARG REPOSITORY_URL=https://github.com/p2m2/service-rdf-database-deployment.git
 # install sbt:https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Linux.html
 
 RUN apt update &&\
-    apt install -y git scala apt-transport-https curl gnupg -yqq &&\
+    apt install -y git scala apt-transport-https curl gnupg jq -yqq &&\
     echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list &&\
     echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list &&\
     curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" \
