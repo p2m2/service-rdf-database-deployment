@@ -24,7 +24,7 @@ cache:
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
     SSH_HOST_WORK_DIR: '/tmp/CI/'
 
-  image: inraep2m2/service-rdf-database-deployment:develop
+  image: inraep2m2/service-rdf-database-deployment@sha256:78478d23f346aae859eaafed267169537de1b7e9a7c08732943fddb9518fff8f
   tags: [docker]
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
@@ -65,7 +65,16 @@ cache:
     - '[[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1'
     - '[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"'
     - '[ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME'
-    # Check version exist
+    # Check $VERSION Tag
+    # if exist => nothing to do
+    # otherwise :
+    #   - a tag is create to run a new pipeline
+    #
+    # Build is avalable only for TAG creation (means => $CI_COMMIT_REF_NAME is not empty)
+    - |
+      [ -z "$CI_COMMIT_REF_NAME" ] &&\
+         echo "***********Current build is not a release tag ****************" &&\
+         exit 1  
     - |
       if [ "$VERSION" == "SNAPSHOT" ];then
       fi
