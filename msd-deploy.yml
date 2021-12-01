@@ -46,6 +46,8 @@ cache:
     on_stop: stop_review
 
   after_script:
+    # stop workflow if .env/stop or .env/STOP file exist
+    - '[[ -f ".env/STOP" || -f ".env/stop" ]] && echo "***** Stop deployment file is set ***** " && exit 1'
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
