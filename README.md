@@ -15,6 +15,47 @@ RDF Konwoledge Graph deployment on the HDFS storage
   
 => template [gitlab-ci](./msd-deploy.yml)
 
+## MSD template
+
+### Prerequisite GITLAB Variables
+
+- SSH_HOST
+- SSH_USER
+- SSH_PATH
+- SSH_OPTS = " -q -t "
+- SSH_PRIVATE_KEY 
+- PRIVATE_TOKEN (user token must be defined)
+
+### Variables to defined bu the main YAML gitlab file
+
+- CATEGORY: category of the database
+- DATABASE: database name
+- RDF_INPUT_FILES: local or remote files (http/ftp). possibility to use wildcard
+- RDF_ASKOMICS_INPUT_FILES: a single file
+
+#### SSH_PRIVATE_KEY
+
+`cat my_private_key | base64 -w0`
+
+#### PRIVATE_TOKEN
+
+- go to http://<GITLAB_URL>/-/profile/personal_access_tokens to defined an access token
+- 
+
+### Wariable which can be overloaded
+
+- SSH_HOST_WORK_DIR (default "/tmp/CI")
+
+### YAML usage
+
+```turtle
+
+```
+
+- RDF_INPUT_FILES could be defined dynamically 
+
+
+
 ## command
 ```sh
 sbt run "--soft <string> --start-date <string> --category [category:metabohub/ext] --database [database] --release <string> --askomics-abstraction <file> --output <script.bash> <file1,file2,...>"
