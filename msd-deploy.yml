@@ -4,6 +4,9 @@
 # cat my_private_key | base64 -w0 => set SSH_PRIVATE_KEY as a CI/CD variable
 #
 
+variables:
+  CACHE_FALLBACK_KEY: fallback-key
+
 ################################################################################
 # cache
 cache:
@@ -33,6 +36,7 @@ cache:
     - echo "==================================";
     - echo "[info] init SSH key";
     - mkdir -p ~/.ssh
+    - mkdir -p ~/.env
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
@@ -42,7 +46,7 @@ cache:
   extends: .common_deploy
   environment:
     name: review/$CI_COMMIT_REF_SLUG
-    url: https://$CI_ENVIRONMENT_SLUG.example.com
+    url: https://$CI_ENVIRONMENT_SLUG.gitlab_pfem.fr
     on_stop: stop_review
 
   after_script:
@@ -61,7 +65,10 @@ cache:
     - '[[ -z "$CI_COMMIT_BRANCH" && -z "$CI_COMMIT_REF_NAME" ]] && echo "** Can not set RELEASE NAME ** " && exit 1'
     - '[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ] && RELEASE="SNAPSHOT"'
     - '[ -z "$CI_COMMIT_BRANCH" ] && RELEASE=$CI_COMMIT_REF_NAME'
-    - mkdir -p .env
+    # Check version exist
+    - |
+      if [ "$VERSION" == "SNAPSHOT" ];then
+      fi
     - echo $RELEASE  > .env/release
     - echo $DATABASE > .env/database
     - echo $CATEGORY > .env/category
