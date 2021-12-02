@@ -21,7 +21,7 @@ cache:
 .common_deploy:
   variables:
     OUTPUT_SCRIPT_FILE: 'deploy.sh'
-    SSH_HOST_WORK_DIR: '/tmp/CI/'
+    SSH_HOST_WORK_DIR: '/uploads/CI/'
     TXT_RED: "\e[31m"
     TXT_CLEAR: "\e[0m"
     TXT_YELLOW: "\e[33m"
