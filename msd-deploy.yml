@@ -42,7 +42,7 @@ cache:
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
     # Get VERSION value
-    - '[ -z "$VERSION" ] && echo -e "${TXT_RED}Empty value" && exit 1'
+    - '[ -z "$VERSION" ] && echo -e "${TXT_RED}VERSION Empty value" && exit 1'
     - '[ -z "$DATABASE" ] && echo -e "${TXT_RED}DATABASE is Empty" && exit 1'
     - '[ -z "$CATEGORY" ] && echo -e "${TXT_RED}CATEGORY is Empty" && exit 1'
     - '[ -z "$RDF_INPUT_FILES" ] && echo -e "${TXT_RED}RDF_INPUT_FILES is Empty" && exit 1'
@@ -54,8 +54,8 @@ cache:
 check_version_create_tag:
   stage: deploy
   extends: .common_deploy
-  only:
-    - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     # user should create a tag release to build/create a new release generation
     # if a Tag is defined, a tag name release is created.

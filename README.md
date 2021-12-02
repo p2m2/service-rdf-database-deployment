@@ -17,6 +17,37 @@ RDF Konwoledge Graph deployment on the HDFS storage
 
 ## MSD template
 
+### .gitlab-ci template
+
+```yaml
+include:
+  - remote: 'https://raw.githubusercontent.com/p2m2/service-rdf-database-deployment/1.0.6/msd-deploy.yml'
+
+fetch_info_database:
+  stage: version
+  tags: [bash]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+  only:
+    - tags
+    - main
+  script:
+    - echo "CATEGORY=$CATEGORY" >> build.env
+    - echo "DATABASE=$DATABASE" >> build.env
+    - echo "RDF_INPUT_FILES=$RDF_INPUT_FILES" >> build.env
+    - echo "VERSION=$VERSION" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+```
+### Variables to defined bu the main YAML gitlab file
+
+- CATEGORY: category of the database
+- DATABASE: database name
+- RDF_INPUT_FILES: local or remote files (http/ftp). possibility to use wildcard
+- RDF_ASKOMICS_INPUT_FILES: a single file
+
 ### Prerequisite GITLAB Variables
 
 - SSH_HOST
@@ -26,12 +57,7 @@ RDF Konwoledge Graph deployment on the HDFS storage
 - SSH_PRIVATE_KEY 
 - PRIVATE_TOKEN (user token must be defined)
 
-### Variables to defined bu the main YAML gitlab file
 
-- CATEGORY: category of the database
-- DATABASE: database name
-- RDF_INPUT_FILES: local or remote files (http/ftp). possibility to use wildcard
-- RDF_ASKOMICS_INPUT_FILES: a single file
 
 #### SSH_PRIVATE_KEY
 
@@ -44,16 +70,7 @@ RDF Konwoledge Graph deployment on the HDFS storage
 
 ### Wariable which can be overloaded
 
-- SSH_HOST_WORK_DIR (default "/tmp/CI")
-
-### YAML usage
-
-```turtle
-
-```
-
-- RDF_INPUT_FILES could be defined dynamically 
-
+- SSH_HOST_WORK_DIR (default "/uploads/CI")
 
 
 ## command
