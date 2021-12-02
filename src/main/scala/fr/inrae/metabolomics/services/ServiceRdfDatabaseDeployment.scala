@@ -101,6 +101,15 @@ case object ServiceRdfDatabaseDeployment extends App {
                         // arguments are bad, error message will have been displayed
                         System.err.println("exit with error.")
         }
+        
+        def slugify(input: String): String = {
+                import java.text.Normalizer
+                Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("[^\\w\\s-]", "_") // Remove all non-word, non-space or non-dash characters
+                .trim                         // Trim leading/trailing whitespace (including what used to be leading/trailing dashes)
+                .replaceAll("\\s+", "-")      // Replace whitespace (including newlines and repetitions) with single dashes
+                .toLowerCase                  // Lowercase the final results
+        }
 
         def buildScript(
                          files: Seq[String],
@@ -146,7 +155,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                         case None => System.err.println(s"None askomics abstraction is provided . ")
                 }
 
-                val fileProv = s"${category}-${databaseName}-${release}-prov.jsonld"
+                val fileProv = slugify(s"${category}-${databaseName}-${release}")+".jsonld"
                 /* !! create file inside the output script on the current directory (should be /tmp/CI/{CI_ID_JOB})!! */
                 bw.write("cat << EOF > $PWD/"+s"${fileProv}\n")
                 bw.write(ProvenanceBuilder.build(category,databaseName,release,soft,startDate))
