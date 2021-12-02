@@ -54,7 +54,8 @@ cache:
 check_version_create_tag:
   stage: deploy
   extends: .common_deploy
-
+  only:
+    - branches
   script:
     # user should create a tag release to build/create a new release generation
     # if a Tag is defined, a tag name release is created.
@@ -152,6 +153,8 @@ deployment_release :
 stop_review:
   stage: deploy
   extends: .common_deploy
+  except:
+    - branches
   script:
     - RELEASE=$CI_COMMIT_TAG
     - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
