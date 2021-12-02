@@ -59,9 +59,7 @@ check_version_create_tag:
   script:
     # user should create a tag release to build/create a new release generation
     # if a Tag is defined, a tag name release is created.
-    - 'echo "=============================>>> VERSION : $VERSION"'
-    - 'echo "=============================>>> DATABASE : $DATABASE"'
-    - 'echo "=============================>>> CATEGORY : $CATEGORY"'
+    - 'echo -e "${TXT_YELLOW}VERSION : $VERSION"'
     # If TAG release context => Build the database on MSD
     # othewise => manage a creation of a TAG releas
     #           - Check if TAG exist with API
@@ -87,7 +85,7 @@ check_version_create_tag:
          fi
       fi
 
-deployment_release :
+deployment_release:
   stage: deploy
   extends: .common_deploy
   except:
@@ -100,11 +98,19 @@ deployment_release :
   script:
     # Build is avalable only for TAG creation (means => $CI_COMMIT_REF_NAME is not empty)
     - RELEASE=$CI_COMMIT_REF_NAME
-    - echo "[info] Test the existence of the variables necessary";
-    - echo "##########"
-    - echo "###    'Metadata / Push on HDFS' script Generation"
-    - echo "##########"
-    - echo "Start Date:${START_DATETIME_XSD}"
+    - 'echo -e "${TXT_YELLOW}RELEASE                  : $RELEASE"'
+    - 'echo -e "${TXT_YELLOW}DATABASE                 : $DATABASE"'
+    - 'echo -e "${TXT_YELLOW}CATEGORY                 : $CATEGORY"'
+    - 'echo -e "${TXT_YELLOW}RDF_INPUT_FILES          : $RDF_INPUT_FILES"'
+    - 'echo -e "${TXT_YELLOW}RDF_ASKOMICS_INPUT_FILES : $RDF_ASKOMICS_INPUT_FILES"'
+    - 'echo -e "${TXT_YELLOW}OUTPUT_SCRIPT_FILE       : $OUTPUT_SCRIPT_FILE"'
+    - 'echo -e "${TXT_YELLOW}CI_PROJECT_NAME          : $CI_PROJECT_NAME"'
+    - 'echo -e "${TXT_YELLOW}START_DATETIME_XSD       : ${START_DATETIME_XSD}"'
+    - 'echo -e "${TXT_YELLOW}SSH_HOST_WORK_DIR        : ${SSH_HOST_WORK_DIR}"'
+    - 'echo -e "${TXT_YELLOW}CI_JOB_ID                : ${CI_JOB_ID}"'
+    - 'echo -e "${TXT_YELLOW}####################################################"'
+    - 'echo -e "${TXT_YELLOW}###       Metadata / Push on HDFS script Generation"'
+    - 'echo -e "${TXT_YELLOW}####################################################"'
     - |
       if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
@@ -124,9 +130,9 @@ deployment_release :
                   --output ${OUTPUT_SCRIPT_FILE} \
                   ${RDF_INPUT_FILES}
       fi
-    - echo "##########"
-    - echo "###    Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID} "
-    - echo "##########"
+    - 'echo -e "${TXT_YELLOW}####################################################"'
+    - 'echo -e "${TXT_YELLOW}### Copy script => ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}"'
+    - 'echo -e "${TXT_YELLOW}####################################################"'
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
     - RDF_LOCAL_FILES=$(echo $RDF_INPUT_FILES | tr ' ' '\n' | awk '!/^(http|https|ftp)/ {print $1}' | tr '\n' ' ')
     - |
@@ -141,13 +147,13 @@ deployment_release :
         fi
       fi
     - scp ${OUTPUT_SCRIPT_FILE} $SSH_USER@$SSH_HOST:${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/
-    - echo "##########"
-    - echo "###    HDFS Deployment (Data + Metadata)"
-    - echo "##########"
+    - 'echo -e "${TXT_YELLOW}####################################################"'
+    - 'echo -e "${TXT_YELLOW}###    HDFS Deployment (Data + Metadata)"'
+    - 'echo -e "${TXT_YELLOW}####################################################"'
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "cd ${SSH_HOST_WORK_DIR}/${CI_JOB_ID};bash ${OUTPUT_SCRIPT_FILE}"
-    - echo "##########"
-    - echo "###    Clean"
-    - echo "##########"
+    - 'echo -e "${TXT_YELLOW}####################################################"'
+    - 'echo -e "${TXT_YELLOW}###    Clean"'
+    - 'echo -e "${TXT_YELLOW}####################################################"'
     - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "rm -rf ${SSH_HOST_WORK_DIR}/${CI_JOB_ID}/"
 
 stop_review:
