@@ -26,6 +26,9 @@ include:
 fetch_info_database:
   stage: version
   tags: [bash]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
   only:
     - tags
     - main
