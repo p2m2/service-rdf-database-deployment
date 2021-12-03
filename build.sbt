@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % slf4jVersion,
   "com.lihaoyi" %% "utest" % uTestVersion % "test"
 )
-parallelExecution in Test := false
+Test / parallelExecution := false
 testFrameworks += new TestFramework("utest.runner.Framework")
 
 assembly / assemblyMergeStrategy := {
