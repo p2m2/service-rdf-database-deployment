@@ -128,22 +128,55 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val dirAskOmicsAbstraction =s"${rootPathDatabasesHdfsCluster}/askomics/"
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
 
-                val wgetOpt = "-nv -r -nd --no-parent -e robots=off"
+                val wgetOpt = "--spider -nv -r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
 
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirProvData}\n")
+                /*
+                HTTP management
+                 */
                 files.filter(
                         x => x.matches("^(http|https|ftp)://.*$")
                 ).foreach(
                         x => {
-                                bw.write(s"wget $wgetOpt -A "+ "\"$(basename "+x+")\"" + " $(dirname "+x+")/\n")
+                                /* get files names */
+                                bw.write("FILES=$(wget "+s"$wgetOpt -A "+ "\"$(basename "+x+")\"" +
+                                  " $(dirname "+x+")/ 2>&1 | egrep \"200[[:blank:]]+OK$\" | awk '{print $4}')\n")
+
+                                bw.write("for file in $FILES\n")
+                                bw.write("do\n")
+                                bw.write("if [ \"${file: -3}\" == \".gz\" ]; then\n")
+                                bw.write("wget -q -O - $file | gunzip -c | hdfs dfs -put - " +
+                                  s"/${dirData}"+"/$(basename ${file%.gz})\n")
+                                bw.write("else\n")
+                                bw.write("wget -q -O - $file | hdfs dfs -put - " +
+                                  s"/${dirData}"+"/$(basename $file)\n")
+                                bw.write("fi\n")
+                                bw.write("done\n")
                         }
                 )
                 // unzip if needed
+                files.filter(
+                        x => ! x.matches("^(http|https|ftp)://.*$")
+                ).foreach(
+                        x => x match {
+                                case file if file.endsWith(".gz") => {
+                                        bw.write("file_expr=$(basename "+file+")\n")
+                                        bw.write("for file in $(ls $file_expr)\n")
+                                        bw.write("do\n")
+                                        bw.write("gunzip -c $file | hdfs dfs -put - " +
+                                          s"/${dirData}"+"/$(basename ${file%.gz})\n")
+                                        bw.write("done\n")
+                                }
+                                case _ => {
+                                        bw.write(s"$hdfs"+" dfs -put -f $(basename "+x+") "+s"${dirData}\n")
+                                }
+
+                        })
                 bw.write("gunzip -q $(ls *.gz 2>/dev/null)\n")
-                bw.write(s"$hdfs dfs -put -f ${files.map(x => "$(basename "+x.replaceAll(".gz$","")+")").mkString(" ")} ${dirData}\n")
+
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
