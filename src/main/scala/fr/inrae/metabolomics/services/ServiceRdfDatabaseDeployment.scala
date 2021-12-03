@@ -194,7 +194,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                                 if ( file.matches("^(http|https|ftp)://.*$"))
                                         bw.write(s"wget $file\n")
                                 bw.write(s"$hdfs dfs -put -f "+"$("+s"basename $file) " +
-                                  s"${dirAskOmicsAbstraction}/${category}-${databaseName}-${release}-askomics.ttl\n")
+                                  s"${dirAskOmicsAbstraction}/"+"$("+s"basename $file)\n")
                         case Some( f ) => System.err.println(s"Can not manage this Askomics extension file ${f}")
                         case None => System.err.println(s"None askomics abstraction is provided . ")
                 }

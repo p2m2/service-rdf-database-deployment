@@ -46,7 +46,9 @@ cache:
     - '[ -z "$DATABASE" ] && echo -e "${TXT_RED}DATABASE is Empty" && exit 1'
     - '[ -z "$CATEGORY" ] && echo -e "${TXT_RED}CATEGORY is Empty" && exit 1'
     - '[ -z "$RDF_INPUT_FILES" ] && echo -e "${TXT_RED}RDF_INPUT_FILES is Empty" && exit 1'
+    - '[ -n "$RDF_ASKOMICS_INPUT_FILES" ] && echo -e "${TXT_RED}RDF_ASKOMICS_INPUT_FILES is defined. 1.0.7 Defined use RDF_ASKOMICS_INPUT_FILE" && exit 1'
     - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo -e "${TXT_RED}OUTPUT_SCRIPT_FILE is Empty" && exit 1'
+    - '[ -z "$PROV_FILE_NAME" ] && echo -e "${TXT_RED}PROV_FILE_NAME is Empty" && exit 1'
     - '[ -z "$SSH_HOST_WORK_DIR" ] && echo -e "${TXT_RED}SSH_HOST_WORK_DIR is Empty" && exit 1'
 
   dependencies: [fetch_info_database]
@@ -102,7 +104,8 @@ deployment_release:
     - 'echo -e "${TXT_YELLOW}DATABASE                 : $DATABASE"'
     - 'echo -e "${TXT_YELLOW}CATEGORY                 : $CATEGORY"'
     - 'echo -e "${TXT_YELLOW}RDF_INPUT_FILES          : $RDF_INPUT_FILES"'
-    - 'echo -e "${TXT_YELLOW}RDF_ASKOMICS_INPUT_FILES : $RDF_ASKOMICS_INPUT_FILES"'
+    - 'echo -e "${TXT_YELLOW}RDF_ASKOMICS_INPUT_FILE  : $RDF_ASKOMICS_INPUT_FILE"'
+    - 'echo -e "${TXT_YELLOW}PROV_FILE_NAME           : $PROV_FILE_NAME"'
     - 'echo -e "${TXT_YELLOW}OUTPUT_SCRIPT_FILE       : $OUTPUT_SCRIPT_FILE"'
     - 'echo -e "${TXT_YELLOW}CI_PROJECT_NAME          : $CI_PROJECT_NAME"'
     - 'echo -e "${TXT_YELLOW}START_DATETIME_XSD       : ${START_DATETIME_XSD}"'
@@ -112,13 +115,14 @@ deployment_release:
     - 'echo -e "${TXT_YELLOW}###       Metadata / Push on HDFS script Generation"'
     - 'echo -e "${TXT_YELLOW}####################################################"'
     - |
-      if [ -z "$RDF_ASKOMICS_INPUT_FILES" ];then
+      if [ -z "$RDF_ASKOMICS_INPUT_FILE" ];then
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
                            --start-date ${START_DATETIME_XSD} \
                            --category ${CATEGORY}  \
                            --release ${RELEASE}  \
                            --database ${DATABASE}  \
                            --output ${OUTPUT_SCRIPT_FILE} \
+                           --provjsonld ${PROV_FILE_NAME} \
                            ${RDF_INPUT_FILES}
       else
          service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
@@ -126,7 +130,8 @@ deployment_release:
                   --category ${CATEGORY}  \
                   --release ${RELEASE}  \
                   --database ${DATABASE}  \
-                  --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILES} \
+                  --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILE} \
+                  --provjsonld ${PROV_FILE_NAME} \
                   --output ${OUTPUT_SCRIPT_FILE} \
                   ${RDF_INPUT_FILES}
       fi
@@ -166,22 +171,12 @@ stop_review:
     - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
     - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
     - '[ -z "$RELEASE" ] && echo "RELEASE is Empty" && exit 1'
+    - '[ -z "$RDF_ASKOMICS_INPUT_FILES" ] && echo "RDF_ASKOMICS_INPUT_FILES is Empty" && exit 1'
+    - '[ -z "$PROV_FILE_NAME" ] && echo "PROV_FILE_NAME is Empty" && exit 1'
     - export HDFS="/usr/local/hadoop/bin/hdfs"
-    - |
-      f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "$HDFS dfs -ls \
-        /rdf/prov/${CATEGORY}-${DATABASE}-${RELEASE}*.jsonld 2>/dev/null | rev | cut -d' ' -f1 | rev")
-
-    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"'
-
-    - |
-      f1=$(ssh $SSH_OPTS $SSH_USER@$SSH_HOST \
-        "$HDFS dfs -ls \
-            /rdf/askomics/${CATEGORY}-${DATABASE}-${RELEASE}*-askomics.ttl 2>/dev/null | rev | cut -d' ' -f1 | rev")
-
-    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f $f1"'
-
-    - ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"
+    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/prov/${PROV_FILE_NAME}.jsonld"'
+    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/askomics/$RDF_ASKOMICS_INPUT_FILES"'
+    - 'ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"'
 
   when: manual
   environment:
