@@ -10,6 +10,9 @@ version: 2.1
 workflows:
   docker-publication-workflow:
     jobs:
+      - compile:
+          context:
+            - DOCKER_CONTEXT
       # only develop is build and push on dockerhub !
       - build_branch:
           context:
@@ -34,6 +37,13 @@ workflows:
               ignore: /.*/
 
 executors:
+  openjdk:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/openjdk:8-jdk
+        auth:
+          username: ${DOCKER_USER}
+          password: ${DOCKER_PASS}
   docker-publisher:
     docker:
       - image: circleci/buildpack-deps:stretch
@@ -42,6 +52,23 @@ executors:
           password: ${DOCKER_PASS}
 
 jobs:
+  compile:
+    executor: openjdk
+    environment:
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: Compile - test
+          command: cat /dev/null | sbt test
+
   build_branch:
     executor: docker-publisher
     steps:
