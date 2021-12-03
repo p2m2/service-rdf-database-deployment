@@ -59,7 +59,6 @@ fetch_info_database:
 
 #### SSH_PRIVATE_KEY
 
-
 `cat my_private_key | base64 -w0`
 
 #### PRIVATE_TOKEN
