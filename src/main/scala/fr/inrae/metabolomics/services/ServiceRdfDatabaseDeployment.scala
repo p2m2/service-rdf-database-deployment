@@ -18,6 +18,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                            release : String = "",
                            soft    : String = "",
                            startDate: String = "",
+                           provjsonld: String = "",
                            askOmicsAbstraction: Option[String] = None,
                            files: Seq[String] = Seq(),
                            output: File = new File("./script.sh"))
@@ -49,6 +50,11 @@ case object ServiceRdfDatabaseDeployment extends App {
                           .action({ case (r, c) => c.copy(soft = r) })
                           .valueName("<soft>")
                           .text("soft in charge of the RDF generation"),
+                        opt[String]("provjsonld")
+                          .required()
+                          .action({ case (r, c) => c.copy(provjsonld = r) })
+                          .valueName("<provjsonld>")
+                          .text("prov name file jsonld to created"),
                         opt[String]("database")
                           .required()
                           .action({ case (r, c) => c.copy(database = r) })
@@ -96,7 +102,12 @@ case object ServiceRdfDatabaseDeployment extends App {
                         // do something
                         println(config)
                         buildScript(config.files, config.output,config.category,
-                                config.database,config.release,config.askOmicsAbstraction,config.soft,config.startDate)
+                                config.database,
+                                config.release,
+                                config.askOmicsAbstraction,
+                                config.soft,
+                                config.provjsonld,
+                                config.startDate)
                 case _ =>
                         // arguments are bad, error message will have been displayed
                         System.err.println("exit with error.")
@@ -119,15 +130,17 @@ case object ServiceRdfDatabaseDeployment extends App {
                          release : String,
                          abstraction_askomics : Option[String],
                          soft : String,
+                         provjsonld: String,
                          startDate : String
                        ): Unit = {
+
+                new File(output.getPath).delete()
 
                 val bw = new BufferedWriter(new FileWriter(new File(output.getPath)))
 
                 val dirData =s"${rootPathDatabasesHdfsCluster}/${category}/${databaseName}/${release}"
                 val dirAskOmicsAbstraction =s"${rootPathDatabasesHdfsCluster}/askomics/"
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
-
                 val wgetOpt = "--spider -nv -r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
 
@@ -148,26 +161,26 @@ case object ServiceRdfDatabaseDeployment extends App {
                                 bw.write("for file in $FILES\n")
                                 bw.write("do\n")
                                 bw.write("if [ \"${file: -3}\" == \".gz\" ]; then\n")
-                                bw.write("wget -q -O - $file | gunzip -c | hdfs dfs -put - " +
-                                  s"/${dirData}"+"/$(basename ${file%.gz})\n")
+                                bw.write("wget -q -O - $file | gunzip -c "+s"| $hdfs dfs -put - " +
+                                  s"${dirData}"+"/$(basename ${file%.gz})\n")
                                 bw.write("else\n")
-                                bw.write("wget -q -O - $file | hdfs dfs -put - " +
-                                  s"/${dirData}"+"/$(basename $file)\n")
+                                bw.write("wget -q -O - $file "+s"| $hdfs dfs -put - " +
+                                  s"${dirData}"+"/$(basename $file)\n")
                                 bw.write("fi\n")
                                 bw.write("done\n")
                         }
                 )
-                // unzip if needed
+
                 files.filter(
                         x => ! x.matches("^(http|https|ftp)://.*$")
                 ).foreach(
                         x => x match {
                                 case file if file.endsWith(".gz") => {
                                         bw.write("file_expr=$(basename "+file+")\n")
-                                        bw.write("for file in $(ls $file_expr)\n")
+                                        bw.write("for file in $(ls $file_expr 2>/dev/null)\n")
                                         bw.write("do\n")
-                                        bw.write("gunzip -c $file | hdfs dfs -put - " +
-                                          s"/${dirData}"+"/$(basename ${file%.gz})\n")
+                                        bw.write("gunzip -c $file "+s"| $hdfs dfs -put - " +
+                                          s"${dirData}"+"/$(basename ${file%.gz})\n")
                                         bw.write("done\n")
                                 }
                                 case _ => {
@@ -175,8 +188,6 @@ case object ServiceRdfDatabaseDeployment extends App {
                                 }
 
                         })
-                bw.write("gunzip -q $(ls *.gz 2>/dev/null)\n")
-
 
                 abstraction_askomics match {
                         case Some(file) if file.endsWith(".ttl") =>
@@ -188,15 +199,20 @@ case object ServiceRdfDatabaseDeployment extends App {
                         case None => System.err.println(s"None askomics abstraction is provided . ")
                 }
 
-                val fileProv = slugify(s"${category}-${databaseName}-${release}")+".jsonld"
+                val fileProv = slugify(s"$provjsonld")+".jsonld"
                 /* !! create file inside the output script on the current directory (should be /tmp/CI/{CI_ID_JOB})!! */
-                bw.write("cat << EOF > $PWD/"+s"${fileProv}\n")
-                bw.write(ProvenanceBuilder.build(category,databaseName,release,soft,startDate))
-                bw.write("\nEOF\n")
-                bw.write(s"$hdfs dfs -put -f ${fileProv} ${dirProvData}\n")
+                if (provjsonld.length>0) {
+                        bw.write("cat << EOF > $PWD/"+s"${fileProv}\n")
+                        bw.write(ProvenanceBuilder.build(category,databaseName,release,soft,startDate))
+                        bw.write("\nEOF\n")
+                        bw.write(s"$hdfs dfs -put -f ${fileProv} ${dirProvData}\n")
 
-                bw.close()
-                println("output script file:" + output.getPath)
+                        bw.close()
+                        println("output script file:" + output.getPath)
+                } else {
+                        throw new Exception("Bad definition of jsonld!!!")
+                }
+
 
         }
 }
