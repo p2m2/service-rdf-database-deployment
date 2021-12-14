@@ -164,8 +164,6 @@ deployment_release:
 stop_review:
   stage: deploy
   extends: .common_deploy
-  needs:
-    - deployment_release
   except:
     - branches
   script:
