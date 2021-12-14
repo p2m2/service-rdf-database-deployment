@@ -171,7 +171,6 @@ stop_review:
     - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
     - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
     - '[ -z "$RELEASE" ] && echo "RELEASE is Empty" && exit 1'
-    - '[ -z "$RDF_ASKOMICS_INPUT_FILES" ] && echo "RDF_ASKOMICS_INPUT_FILES is Empty" && exit 1'
     - '[ -z "$PROV_FILE_NAME" ] && echo "PROV_FILE_NAME is Empty" && exit 1'
     - export HDFS="/usr/local/hadoop/bin/hdfs"
     - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/prov/${PROV_FILE_NAME}.jsonld"'
