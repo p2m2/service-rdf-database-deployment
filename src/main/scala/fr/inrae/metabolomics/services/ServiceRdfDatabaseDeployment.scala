@@ -199,11 +199,12 @@ case object ServiceRdfDatabaseDeployment extends App {
                         case None => System.err.println(s"None askomics abstraction is provided . ")
                 }
 
-                val fileProv = slugify(s"$provjsonld")+".jsonld"
+                val fileProv = provjsonld //slugify(s"$provjsonld")
+                val extension = provjsonld.split("\\.").last
                 /* !! create file inside the output script on the current directory (should be /tmp/CI/{CI_ID_JOB})!! */
                 if (provjsonld.length>0) {
                         bw.write("cat << EOF > $PWD/"+s"${fileProv}\n")
-                        bw.write(ProvenanceBuilder.build(category,databaseName,release,soft,startDate))
+                        bw.write(ProvenanceBuilder.build(category,databaseName,release,soft,startDate,extension))
                         bw.write("\nEOF\n")
                         bw.write(s"$hdfs dfs -put -f ${fileProv} ${dirProvData}\n")
 

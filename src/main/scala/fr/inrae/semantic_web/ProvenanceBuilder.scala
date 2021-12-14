@@ -24,7 +24,14 @@ case object ProvenanceBuilder {
     builder.setNamespace(k,v)
   }}
 
-  def build(category : String, database : String, release : String, soft : String, startDate:String) : String = {
+  def build(
+             category : String,
+             database : String,
+             release : String,
+             soft : String,
+             startDate:String,
+             extension : String
+           ) : String = {
 
     val graphNamed : String = "http://www.metabohub.fr/msd/prov/" +
       category + "/" +
@@ -72,7 +79,18 @@ case object ProvenanceBuilder {
    // config.set(BasicWriterSettings.PRETTY_PRINT, true)
 
     val stringWriter = new StringWriter()
-    Rio.write(builder.build(), stringWriter, RDFFormat.JSONLD, config)
+
+    val format : RDFFormat = extension match {
+      case "jsonld" => RDFFormat.JSONLD
+      case "ttl"    => RDFFormat.TURTLE
+      case "trig"   => RDFFormat.TRIG
+      case "nt"     => RDFFormat.NTRIPLES
+      case "n3"     => RDFFormat.N3
+      case "rdf"    => RDFFormat.RDFXML
+      case _ => throw new IllegalArgumentException(s"Unknown extension : $extension ")
+    }
+
+    Rio.write(builder.build(), stringWriter, format, config)
 
     stringWriter.toString()
   }
