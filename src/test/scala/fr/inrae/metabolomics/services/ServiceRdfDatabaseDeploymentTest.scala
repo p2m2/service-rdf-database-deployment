@@ -24,7 +24,7 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
         "--release","RELEASE",
         "--soft","SOFT",
         "--database","DATABASE",
-        "--provjsonld","prov",
+        "--provjsonld","prov.jsonld",
         "--start-date",date
       )
   }
@@ -37,7 +37,7 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--release","RELEASE",
       "--soft","SOFT",
       "--database","DATABASE",
-      "--provjsonld","prov",
+      "--provjsonld","prov.rdf",
       "--start-date",date
     )
   }
@@ -50,7 +50,7 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--release","RELE/ASE",
       "--soft","SOFT",
       "--database","DATABASE",
-      "--provjsonld","prov",
+      "--provjsonld","prov.ttl",
       "--start-date",date
     )
   }
@@ -63,7 +63,7 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--release","RELEASE",
       "--soft","SOFT",
       "--database","DATA/BASE",
-      "--provjsonld","prov",
+      "--provjsonld","prov.n3",
       "--start-date",date
     )
   }

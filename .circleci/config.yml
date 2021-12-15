@@ -23,7 +23,7 @@ workflows:
             branches:
               only:
                 - develop
-#                - delete_stage
+#                - remove_check_abstraction_asko_35
 
       # all tags are build and push on dockerhub !
       - build_tag_latest:
