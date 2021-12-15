@@ -108,6 +108,7 @@ deployment_release:
     - 'echo -e "${TXT_YELLOW}PROV_FILE_NAME           : $PROV_FILE_NAME"'
     - 'echo -e "${TXT_YELLOW}OUTPUT_SCRIPT_FILE       : $OUTPUT_SCRIPT_FILE"'
     - 'echo -e "${TXT_YELLOW}CI_PROJECT_NAME          : $CI_PROJECT_NAME"'
+    - 'echo -e "${TXT_YELLOW}CI_PROJECT_ID            : $CI_PROJECT_ID"'
     - 'echo -e "${TXT_YELLOW}START_DATETIME_XSD       : ${START_DATETIME_XSD}"'
     - 'echo -e "${TXT_YELLOW}SSH_HOST_WORK_DIR        : ${SSH_HOST_WORK_DIR}"'
     - 'echo -e "${TXT_YELLOW}CI_JOB_ID                : ${CI_JOB_ID}"'
@@ -175,6 +176,11 @@ stop_review:
     -  '[ ! -z "$RDF_ASKOMICS_INPUT_FILES" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/askomics/$RDF_ASKOMICS_INPUT_FILES"'
     - 'ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/prov/${PROV_FILE_NAME}"'
     - 'ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"'
+    # --- Remove tag Version ---
+    - | 
+      curl -s --request DELETE \
+      --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}"\
+        "${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION}"
 
   when: manual
   environment:
