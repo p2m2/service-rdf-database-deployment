@@ -171,9 +171,9 @@ stop_review:
     - '[ -z "$DATABASE" ] && echo "DATABASE is Empty" && exit 1'
     - '[ -z "$CATEGORY" ] && echo "CATEGORY is Empty" && exit 1'
     - '[ -z "$RELEASE" ] && echo "RELEASE is Empty" && exit 1'
-    - export HDFS="/usr/local/hadoop/bin/hdfs"
-    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/prov/${PROV_FILE_NAME}"'
-    - '[ ! -z "$f1" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/askomics/$RDF_ASKOMICS_INPUT_FILES"'
+    - 'export HDFS="/usr/local/hadoop/bin/hdfs"'
+    -  '[ ! -z "$RDF_ASKOMICS_INPUT_FILES" ] && ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/askomics/$RDF_ASKOMICS_INPUT_FILES"'
+    - 'ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -f /rdf/prov/${PROV_FILE_NAME}"'
     - 'ssh $SSH_OPTS $SSH_USER@$SSH_HOST "$HDFS dfs -rm -r -f /rdf/${CATEGORY}/${DATABASE}/${RELEASE}"'
 
   when: manual
