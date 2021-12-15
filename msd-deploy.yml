@@ -179,7 +179,7 @@ stop_review:
     - | 
       curl -s --request DELETE \
       --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}"\
-        "${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags?tag_name=${VERSION}
+        "${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags?tag_name=${VERSION}"
 
   when: manual
   environment:
