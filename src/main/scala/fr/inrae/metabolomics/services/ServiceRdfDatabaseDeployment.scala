@@ -100,8 +100,8 @@ case object ServiceRdfDatabaseDeployment extends App {
         println("# == service database deployment / Metabolomics Semantic Data lake / MetaboHUB == ")
         // if you want to access the command line args:
         println("# -- args : ");
-        args.foreach(x => print(x+" "))
-        println("")
+        args.foreach(x => println(x+" "))
+
         val script =
                 """
           hdfs dfs mkdir

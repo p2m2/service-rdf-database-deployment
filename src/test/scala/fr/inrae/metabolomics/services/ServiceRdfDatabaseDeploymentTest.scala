@@ -101,7 +101,7 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
     println("=============================================================================================")
     // all mkdir should have -p option to avoid an error
     assert(!lines.filter( x => x.contains("mkdir")).exists(x => !x.contains(" -p")))
-    assert(!lines.exists( x => x.contains("hdfs") && !x.contains("/usr/local/hadoop/bin") ),"Forgot /usr/local/hadoop/bin")
+    assert(!lines.exists( x => x.contains("hdfs ") && !x.contains("/usr/local/hadoop/bin") ),"Forgot /usr/local/hadoop/bin")
   }
 
   override def utestAfterAll(): Unit = {

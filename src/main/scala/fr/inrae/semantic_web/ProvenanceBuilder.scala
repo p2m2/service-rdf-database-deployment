@@ -56,6 +56,7 @@ case object ProvenanceBuilder {
       .add(DCTERMS.TITLE,release)
       .add(DCTERMS.MODIFIED,literal(startDate,XSD.DATETIME) )
       .add(PROV.WAS_GENERATED_BY, s"$ciPipelineUrl")
+      .add(DCAT.ACCESS_URL,s"hdfs://rdf/${category}/${database}/${release}")
 
     val endString : String = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date())
 
