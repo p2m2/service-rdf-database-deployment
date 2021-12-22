@@ -19,7 +19,6 @@ case object ServiceRdfDatabaseDeployment extends App {
                            ciProjectUrl : String  = "",
                            ciPipelineUrl : String = "",
                            urlRelease : String    = "",
-                           soft    : String       = "",
                            startDate: String      = "",
                            provjsonld: String     = "",
                            askOmicsAbstraction: Option[String] = None,
@@ -63,11 +62,6 @@ case object ServiceRdfDatabaseDeployment extends App {
                           .action({ case (r, c) => c.copy(urlRelease = r) })
                           .valueName("<url-release>")
                           .text("url-release"),
-                        opt[String]("soft")
-                          .required()
-                          .action({ case (r, c) => c.copy(soft = r) })
-                          .valueName("<soft>")
-                          .text("soft in charge of the RDF generation"),
                         opt[String]("provjsonld")
                           .required()
                           .action({ case (r, c) => c.copy(provjsonld = r) })
@@ -126,7 +120,6 @@ case object ServiceRdfDatabaseDeployment extends App {
                                 config.ciPipelineUrl,
                                 config.urlRelease,
                                 config.askOmicsAbstraction,
-                                config.soft,
                                 config.provjsonld,
                                 config.startDate)
                 case _ =>
@@ -153,7 +146,6 @@ case object ServiceRdfDatabaseDeployment extends App {
                          ciPipelineUrl : String,
                          urlRelease : String,
                          abstraction_askomics : Option[String],
-                         soft : String,
                          provjsonld: String,
                          startDate : String
                        ): Unit = {
@@ -230,7 +222,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                         bw.write("cat << EOF > $PWD/"+s"${fileProv}\n")
                         bw.write(ProvenanceBuilder.build(
                                 ciProjectUrl,ciPipelineUrl,urlRelease,
-                                category,databaseName,release,soft,startDate,extension))
+                                category,databaseName,release,startDate,extension))
                         bw.write("\nEOF\n")
                         bw.write(s"$hdfs dfs -put -f ${fileProv} ${dirProvData}\n")
 

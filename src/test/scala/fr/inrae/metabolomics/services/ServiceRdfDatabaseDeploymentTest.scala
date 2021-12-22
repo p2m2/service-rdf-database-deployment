@@ -25,7 +25,6 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
         "--ci-project-url","http://url-project",
         "--ci-pipeline-url","http://url-pipeline",
         "--url-release","http://url-release",
-        "--soft","SOFT",
         "--database","DATABASE",
         "--provjsonld","prov.jsonld",
         "--start-date",date
@@ -41,7 +40,6 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--ci-project-url","http://url-project",
       "--ci-pipeline-url","http://url-pipeline",
       "--url-release","http://url-release",
-      "--soft","SOFT",
       "--database","DATABASE",
       "--provjsonld","prov.rdf",
       "--start-date",date
@@ -57,7 +55,6 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--ci-project-url","http://url-project",
       "--ci-pipeline-url","http://url-pipeline",
       "--url-release","http://url-release",
-      "--soft","SOFT",
       "--database","DATABASE",
       "--provjsonld","prov.ttl",
       "--start-date",date
@@ -73,7 +70,6 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--ci-project-url","http://url-project",
       "--ci-pipeline-url","http://url-pipeline",
       "--url-release","http://url-release",
-      "--soft","SOFT",
       "--database","DATA/BASE",
       "--provjsonld","prov.n3",
       "--start-date",date
