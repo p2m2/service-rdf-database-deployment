@@ -120,7 +120,7 @@ deployment_release:
          service-rdf-database-deployment \ 
                            --ci-project-url ${CI_PROJECT_URL} \
                            --ci-pipeline-url ${CI_PIPELINE_URL} \
-                           --url-release ${"${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION}"} \
+                           --url-release ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION} \
                            --soft ${CI_PROJECT_NAME} \
                            --start-date ${START_DATETIME_XSD} \
                            --category ${CATEGORY}  \
@@ -133,7 +133,7 @@ deployment_release:
          service-rdf-database-deployment \
                   --ci-project-url ${CI_PROJECT_URL} \
                   --ci-pipeline-url ${CI_PIPELINE_URL} \
-                  --url-release ${"${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION}"} \
+                  --url-release ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION} \
                   --soft ${CI_PROJECT_NAME} \
                   --start-date ${START_DATETIME_XSD} \
                   --category ${CATEGORY}  \
