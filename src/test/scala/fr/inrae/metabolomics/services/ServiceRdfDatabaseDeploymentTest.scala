@@ -22,7 +22,9 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
         "--output",script_out,
         "--category","CATEGORY",
         "--release","RELEASE",
-        "--soft","SOFT",
+        "--ci-project-url","http://url-project",
+        "--ci-pipeline-url","http://url-pipeline",
+        "--url-release","http://url-release",
         "--database","DATABASE",
         "--provjsonld","prov.jsonld",
         "--start-date",date
@@ -35,7 +37,9 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--output",script_out,
       "--category","CATE/GORY",
       "--release","RELEASE",
-      "--soft","SOFT",
+      "--ci-project-url","http://url-project",
+      "--ci-pipeline-url","http://url-pipeline",
+      "--url-release","http://url-release",
       "--database","DATABASE",
       "--provjsonld","prov.rdf",
       "--start-date",date
@@ -48,7 +52,9 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--output",script_out,
       "--category","CATEGORY",
       "--release","RELE/ASE",
-      "--soft","SOFT",
+      "--ci-project-url","http://url-project",
+      "--ci-pipeline-url","http://url-pipeline",
+      "--url-release","http://url-release",
       "--database","DATABASE",
       "--provjsonld","prov.ttl",
       "--start-date",date
@@ -61,7 +67,9 @@ object ServiceRdfDatabaseDeploymentTest extends TestSuite {
       "--output",script_out,
       "--category","CATEGORY",
       "--release","RELEASE",
-      "--soft","SOFT",
+      "--ci-project-url","http://url-project",
+      "--ci-pipeline-url","http://url-pipeline",
+      "--url-release","http://url-release",
       "--database","DATA/BASE",
       "--provjsonld","prov.n3",
       "--start-date",date

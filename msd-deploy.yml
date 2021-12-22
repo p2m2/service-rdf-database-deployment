@@ -26,7 +26,7 @@ cache:
     TXT_CLEAR: "\e[0m"
     TXT_YELLOW: "\e[33m"
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.8
+  image: inraep2m2/service-rdf-database-deployment:1.0.9
   tags: [docker]
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
@@ -117,7 +117,10 @@ deployment_release:
     - 'echo -e "${TXT_YELLOW}####################################################"'
     - |
       if [ -z "$RDF_ASKOMICS_INPUT_FILE" ];then
-         service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+         service-rdf-database-deployment\
+                           --ci-project-url ${CI_PROJECT_URL} \
+                           --ci-pipeline-url ${CI_PIPELINE_URL} \
+                           --url-release ${CI_PROJECT_URL}/tags/${VERSION} \
                            --start-date ${START_DATETIME_XSD} \
                            --category ${CATEGORY}  \
                            --release ${RELEASE}  \
@@ -126,7 +129,10 @@ deployment_release:
                            --provjsonld ${PROV_FILE_NAME} \
                            ${RDF_INPUT_FILES}
       else
-         service-rdf-database-deployment --soft ${CI_PROJECT_NAME} \
+         service-rdf-database-deployment\
+                  --ci-project-url ${CI_PROJECT_URL} \
+                  --ci-pipeline-url ${CI_PIPELINE_URL} \
+                  --url-release ${CI_PROJECT_URL}/tags/${VERSION} \
                   --start-date ${START_DATETIME_XSD} \
                   --category ${CATEGORY}  \
                   --release ${RELEASE}  \

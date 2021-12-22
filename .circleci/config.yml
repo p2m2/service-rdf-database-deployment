@@ -23,7 +23,7 @@ workflows:
             branches:
               only:
                 - develop
-#                - remove_check_abstraction_asko_35
+                #- fix_args_service
 
       # all tags are build and push on dockerhub !
       - build_tag_latest:
