@@ -13,14 +13,17 @@ case object ServiceRdfDatabaseDeployment extends App {
         import scopt.OParser
 
         case class Config(
-                           category: String = "metabohub",
-                           database: String = "",
-                           release : String = "",
-                           soft    : String = "",
-                           startDate: String = "",
-                           provjsonld: String = "",
+                           category: String       = "metabohub",
+                           database: String       = "",
+                           release : String       = "",
+                           ciProjectUrl : String  = "",
+                           ciPipelineUrl : String = "",
+                           urlRelease : String    = "",
+                           soft    : String       = "",
+                           startDate: String      = "",
+                           provjsonld: String     = "",
                            askOmicsAbstraction: Option[String] = None,
-                           files: Seq[String] = Seq(),
+                           files: Seq[String]     = Seq(),
                            output: File = new File("./script.sh"))
 
         val builder = OParser.builder[Config]
@@ -45,6 +48,21 @@ case object ServiceRdfDatabaseDeployment extends App {
                           .action({ case (r, c) => c.copy(release = r) })
                           .valueName("<release>")
                           .text("release name"),
+                        opt[String]("ci-project-url")
+                          .required()
+                          .action({ case (r, c) => c.copy(ciProjectUrl = r) })
+                          .valueName("<ci-project-url>")
+                          .text("ci-project-url"),
+                        opt[String]("ci-pipeline-url")
+                          .required()
+                          .action({ case (r, c) => c.copy(ciPipelineUrl = r) })
+                          .valueName("<ci-pipeline-url>")
+                          .text("ci-pipeline-url"),
+                        opt[String]("url-release")
+                          .required()
+                          .action({ case (r, c) => c.copy(urlRelease = r) })
+                          .valueName("<url-release>")
+                          .text("url-release"),
                         opt[String]("soft")
                           .required()
                           .action({ case (r, c) => c.copy(soft = r) })
@@ -104,6 +122,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                         buildScript(config.files, config.output,config.category,
                                 config.database,
                                 config.release,
+                                config.ciProjectUrl,
+                                config.ciPipelineUrl,
+                                config.urlRelease,
                                 config.askOmicsAbstraction,
                                 config.soft,
                                 config.provjsonld,
@@ -128,6 +149,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                          category: String,
                          databaseName: String,
                          release : String,
+                         ciProjectUrl : String,
+                         ciPipelineUrl : String,
+                         urlRelease : String,
                          abstraction_askomics : Option[String],
                          soft : String,
                          provjsonld: String,
@@ -204,7 +228,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                 /* !! create file inside the output script on the current directory (should be /tmp/CI/{CI_ID_JOB})!! */
                 if (provjsonld.length>0) {
                         bw.write("cat << EOF > $PWD/"+s"${fileProv}\n")
-                        bw.write(ProvenanceBuilder.build(category,databaseName,release,soft,startDate,extension))
+                        bw.write(ProvenanceBuilder.build(
+                                ciProjectUrl,ciPipelineUrl,urlRelease,
+                                category,databaseName,release,soft,startDate,extension))
                         bw.write("\nEOF\n")
                         bw.write(s"$hdfs dfs -put -f ${fileProv} ${dirProvData}\n")
 
