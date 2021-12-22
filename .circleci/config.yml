@@ -23,7 +23,7 @@ workflows:
             branches:
               only:
                 - develop
-                - fix_args_service
+                #- fix_args_service
 
       # all tags are build and push on dockerhub !
       - build_tag_latest:
