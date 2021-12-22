@@ -117,7 +117,7 @@ deployment_release:
     - 'echo -e "${TXT_YELLOW}####################################################"'
     - |
       if [ -z "$RDF_ASKOMICS_INPUT_FILE" ];then
-         service-rdf-database-deployment \ 
+         service-rdf-database-deployment\
                            --ci-project-url ${CI_PROJECT_URL} \
                            --ci-pipeline-url ${CI_PIPELINE_URL} \
                            --url-release ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION} \
@@ -130,7 +130,7 @@ deployment_release:
                            --provjsonld ${PROV_FILE_NAME} \
                            ${RDF_INPUT_FILES}
       else
-         service-rdf-database-deployment \
+         service-rdf-database-deployment\
                   --ci-project-url ${CI_PROJECT_URL} \
                   --ci-pipeline-url ${CI_PIPELINE_URL} \
                   --url-release ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/repository/tags/${VERSION} \
