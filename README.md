@@ -21,7 +21,7 @@ RDF Konwoledge Graph deployment on the HDFS storage
 
 ```yaml
 include:
-  - remote: 'https://raw.githubusercontent.com/p2m2/service-rdf-database-deployment/1.0.6/msd-deploy.yml'
+  - remote: 'https://raw.githubusercontent.com/p2m2/service-rdf-database-deployment/lastest/msd-deploy.yml'
 
 fetch_info_database:
   stage: version
@@ -75,28 +75,96 @@ fetch_info_database:
 
 ## command
 ```sh
-sbt run "--soft <string> --start-date <string> --category [category:metabohub/ext] --database [database] --release <string> --askomics-abstraction <file> --output <script.bash> <file1,file2,...>"
+sbt "run --ci-project-url ${CI_PROJECT_URL} \
+         --ci-pipeline-url ${CI_PIPELINE_URL} \
+         --url-release  ${CI_PROJECT_URL}/tags/${VERSION} \
+         --start-date $(date '+%Y-%m-%dT%T') \
+         --category ${CATEGORY} \
+         --database ${DATABASE} \
+         --release ${CI_COMMIT_REF_NAME} \ 
+         --output ${OUTPUT_SCRIPT_FILE} \
+         --provjsonld ${PROV_FILE_NAME} \
+         --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILE} \
+         ${RDF_INPUT_FILES}"
 ```
+
+### options
+
+- `ci-project-url`       : URL of gitlab project
+- `ci-pipeline-url`      : lists of RDF files
+- `url-release`          : future gitlab tag to create
+- `start-date`           : current date
+- `askomics-abstraction` : askomics abstraction
+- `release`              : release name
+- `category`             : database provider
+- `database`             : database name
+- `provjsonld`           : prov/dcat information about database generation on the MSD cluster
+- `output`               : script to deploy database on the MSD Haddop cluster
+
+### generation example
 
 ```sh
-sbt "run --soft mtbls-metadata-reuse-in-agronomy --start-date $(date '+%Y-%m-%dT%T')  --category metabohub --database metabolights --release test --output test.sh --askomics-abstraction test.ttl ./something/test.rdf"
+export CI_PROJECT_URL="https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment"
+export CI_PIPELINE_URL="https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment/-/pipelines/31503" 
+export CI_PROJECT_URL="https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment"
+export CATEGORY="internal"
+export VERSION="test-version"
+export DATABASE="database-test"
+export CI_COMMIT_REF_NAME="test-version"
+export OUTPUT_SCRIPT_FILE="out.sh"
+export PROV_FILE_NAME="$CATEGORY-$DATABASE-$VERSION.ttl"
+export RDF_ASKOMICS_INPUT_FILE="http://metabolomics-datalake.ara.inrae.fr/askomics/database-test/abstraction.ttl"
+export RDF_INPUT_FILES="http://metabolomics-datalake.ara.inrae.fr/database-test/*.ttl"
 ```
 
-```sh
-sbt "run --soft mtbls-metadata-reuse-in-agronomy --start-date $(date '+%Y-%m-%dT%T')  --category metabohub --database metabolights --release test --output test.sh --askomics-abstraction http://test*.ttl http://something/test.rdf.gz"
-```
-## options
-
-- soft : software in charge of generation
-- files : lists of RDF files
-- askomics-abstraction askomics abstraction
-- release : name of the release
-- category  <string> ( ext, metabohub )
-- database : <string>
-- output : <pathString> script to deploy
-
-## example
+#### 'out.sh'
 
 ```bash
-sbt run "--soft mtbls-metadata-reuse-in-agronomy --start-date 2021-07-14T01:01:01Z  --category metabohub --database metabolights --release test --output test.sh ./something/test.rdf"
+#!/bin/bash
+/usr/local/hadoop/bin/hdfs dfs -mkdir -p /rdf/internal/database-test/test-version
+/usr/local/hadoop/bin/hdfs dfs -mkdir -p /rdf/askomics/
+/usr/local/hadoop/bin/hdfs dfs -mkdir -p /rdf/prov/
+FILES=$(wget --spider -nv -r -nd --no-parent -e robots=off -A "$(basename http://metabolomics-datalake.ara.inrae.fr/database-test/*.ttl)" $(dirname http://metabolomics-datalake.ara.inrae.fr/database-test/*.ttl)/ 2>&1 | egrep "200[[:blank:]]+OK$" | awk '{print $4}')
+for file in $FILES
+do
+if [ "${file: -3}" == ".gz" ]; then
+wget -q -O - $file | gunzip -c | /usr/local/hadoop/bin/hdfs dfs -put - /rdf/internal/database-test/test-version/$(basename ${file%.gz})
+else
+wget -q -O - $file | /usr/local/hadoop/bin/hdfs dfs -put - /rdf/internal/database-test/test-version/$(basename $file)
+fi
+done
+/usr/local/hadoop/bin/hdfs dfs -put -f $(basename \) /rdf/internal/database-test/test-version
+wget http://metabolomics-datalake.ara.inrae.fr/askomics/database-test/abstraction.ttl
+/usr/local/hadoop/bin/hdfs dfs -put -f $(basename http://metabolomics-datalake.ara.inrae.fr/askomics/database-test/abstraction.ttl) /rdf/askomics//$(basename http://metabolomics-datalake.ara.inrae.fr/askomics/database-test/abstraction.ttl)
+cat << EOF > $PWD/internal-database-test-test-version.ttl
+@prefix : <http://www.metabohub.fr/msd#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2000/10/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+<https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment>
+  a prov:Entity, <http://www.w3.org/ns/dcat#Dataset>;
+  <http://purl.org/dc/terms/title> "database-test";
+  <http://purl.org/dc/terms/description> "Category internal / Database database-test";
+  <http://purl.org/dc/terms/modified> "2021-12-23T09:22:07"^^<http://www.w3.org/2001/XMLSchema#dateTime>;
+  prov:wasGeneratedBy "https://github.com/p2m2/service-rdf-database-deployment/";
+  <http://www.w3.org/ns/dcat#Distribution> "https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment/tags/test-version" .
+
+<https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment/tags/test-version>
+  a prov:Entity, <http://www.w3.org/ns/dcat#Distribution>;
+  <http://purl.org/dc/terms/title> "test-version";
+  <http://purl.org/dc/terms/modified> "2021-12-23T09:22:07"^^<http://www.w3.org/2001/XMLSchema#dateTime>;
+  prov:wasGeneratedBy "https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment/-/pipelines/31503";
+  <http://www.w3.org/ns/dcat#accessURL> "hdfs://rdf/internal/database-test/test-version" .
+
+<https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment/-/pipelines/31503>
+  a prov:Activity;
+  prov:used "https://services.pfem.clermont.inrae.fr/gitlab/metabosemdatalake/databases/database-test-deployment";
+  prov:startedAtTime "2021-12-23T09:22:07"^^<http://www.w3.org/2001/XMLSchema#dateTime>;
+  prov:endedAtTime "2021-12-23T09:22:12"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+
+EOF
+/usr/local/hadoop/bin/hdfs dfs -put -f internal-database-test-test-version.ttl /rdf/prov/
 ```
