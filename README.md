@@ -57,8 +57,6 @@ fetch_info_database:
 - SSH_PRIVATE_KEY 
 - PRIVATE_TOKEN (user token must be defined)
 
-
-
 #### SSH_PRIVATE_KEY
 
 `cat my_private_key | base64 -w0`
@@ -66,12 +64,10 @@ fetch_info_database:
 #### PRIVATE_TOKEN
 
 - go to http://<GITLAB_URL>/-/profile/personal_access_tokens to defined an access token
-- 
 
 ### Wariable which can be overloaded
 
 - SSH_HOST_WORK_DIR (default "/uploads/CI")
-
 
 ## command
 ```sh
