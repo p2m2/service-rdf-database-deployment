@@ -26,7 +26,7 @@ cache:
     TXT_CLEAR: "\e[0m"
     TXT_YELLOW: "\e[33m"
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.10
+  image: inraep2m2/service-rdf-database-deployment:1.0.11
   tags: [docker]
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
@@ -49,7 +49,7 @@ cache:
     - '[ -n "$RDF_ASKOMICS_INPUT_FILES" ] && echo -e "${TXT_RED}RDF_ASKOMICS_INPUT_FILES is defined. 1.0.7 Defined use RDF_ASKOMICS_INPUT_FILE" && exit 1'
     - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo -e "${TXT_RED}OUTPUT_SCRIPT_FILE is Empty" && exit 1'
     - '[ -z "$SSH_HOST_WORK_DIR" ] && echo -e "${TXT_RED}SSH_HOST_WORK_DIR is Empty" && exit 1'
-    - 'export PROV_FILE_NAME=$CATEGORY-$DATABASE-$VERSION.jsonld'
+    - 'export PROV_FILE_NAME=$CATEGORY-$DATABASE-$VERSION.ttl'
 
   dependencies: [fetch_info_database]
 
