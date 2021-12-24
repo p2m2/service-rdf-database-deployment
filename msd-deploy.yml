@@ -26,7 +26,7 @@ cache:
     TXT_CLEAR: "\e[0m"
     TXT_YELLOW: "\e[33m"
 
-  image: inraep2m2/service-rdf-database-deployment:1.0.10
+  image: inraep2m2/service-rdf-database-deployment:1.0.11
   tags: [docker]
   before_script:
     - '[ -z "$SSH_OPTS" ] && echo "SSH_OPTS is Empty" && exit 1'
