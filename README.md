@@ -81,6 +81,8 @@ sbt "run --ci-project-url ${CI_PROJECT_URL} \
          --output ${OUTPUT_SCRIPT_FILE} \
          --provjsonld ${PROV_FILE_NAME} \
          --askomics-abstraction ${RDF_ASKOMICS_INPUT_FILE} \
+         --askomics-regex-url ${ASKOMICS_REGEX_URL} \
+         --regex-url ${REGEX_URL} \
          ${RDF_INPUT_FILES}"
 ```
 
