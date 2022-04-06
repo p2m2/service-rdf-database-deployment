@@ -22,6 +22,8 @@ case object ServiceRdfDatabaseDeployment extends App {
                            startDate: String      = "",
                            provjsonld: String     = "",
                            askOmicsAbstraction: Option[String] = None,
+                           askomicsRegexUrl: Option[Boolean]   = None,
+                           regexUrl: Option[Boolean]           = None,
                            files: Seq[String]     = Seq(),
                            output: File = new File("./script.sh"))
 
@@ -85,6 +87,17 @@ case object ServiceRdfDatabaseDeployment extends App {
                           .action({ case (r, c) => c.copy(askOmicsAbstraction = Some(r)) })
                           .valueName("<askomics-abstraction>")
                           .text("askomics-abstraction *name*"),
+                        opt[Boolean]("askomics-regex-url")
+                          .optional()
+                          .action({ case (r, c) => c.copy(askomicsRegexUrl = Some(r)) })
+                          .valueName("<askomics-regex-url>")
+                          .text("askomics-regex-url [true|false]"),
+                        opt[Boolean]("regex-url")
+                          .optional()
+                          .action({ case (r, c) => c.copy(regexUrl = Some(r)) })
+                          .valueName("<regex-url>")
+                          .text("regex-url [true|false]"),
+
 
                         help("help").text("prints this usage text"),
                         arg[String]("<file>...")
@@ -106,13 +119,16 @@ case object ServiceRdfDatabaseDeployment extends App {
                 """
           hdfs dfs mkdir
           """.stripMargin
-        println()
-
+        
         // OParser.parse returns Option[Config]
         OParser.parse(parser, args, Config()) match {
                 case Some(config) =>
                         // do something
                         println(config)
+                        
+                        val askomicsRegexUrl  : Boolean = config.askomicsRegexUrl.getOrElse(false)
+                        val regexUrl : Boolean = config.regexUrl.getOrElse(false)
+
                         buildScript(config.files, config.output,config.category,
                                 config.database,
                                 config.release,
@@ -121,7 +137,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                                 config.urlRelease,
                                 config.askOmicsAbstraction,
                                 config.provjsonld,
-                                config.startDate)
+                                config.startDate,
+                                askomicsRegexUrl,
+                                regexUrl)
                 case _ =>
                         // arguments are bad, error message will have been displayed
                         System.err.println("exit with error.")
@@ -147,7 +165,9 @@ case object ServiceRdfDatabaseDeployment extends App {
                          urlRelease : String,
                          abstraction_askomics : Option[String],
                          provjsonld: String,
-                         startDate : String
+                         startDate : String,
+                         askomicsRegexUrl : Boolean,
+                         regexUrl : Boolean
                        ): Unit = {
 
                 new File(output.getPath).delete()
@@ -166,13 +186,18 @@ case object ServiceRdfDatabaseDeployment extends App {
                 /*
                 HTTP management
                  */
+                
                 files.filter(
                         x => x.matches("^(http|https|ftp)://.*$")
                 ).foreach(
                         x => {
                                 /* get files names */
-                                bw.write("FILES=$(wget "+s"$wgetOpt -A "+ "\"$(basename "+x+")\"" +
-                                  " $(dirname "+x+")/ 2>&1 | egrep \"200[[:blank:]]+OK$\" | awk '{print $4}')\n")
+                                if (regexUrl) {
+                                        bw.write(s"FILES=$x\n")
+                                } else {
+                                  bw.write("FILES=$(wget "+s"$wgetOpt -A "+ "\"$(basename "+x+")\"" +
+                                   " $(dirname "+x+")/ 2>&1 | egrep \"200[[:blank:]]+OK$\" | awk '{print $4}')\n")
+                                }
 
                                 bw.write("for file in $FILES\n")
                                 bw.write("do\n")

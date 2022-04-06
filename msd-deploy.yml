@@ -50,6 +50,8 @@ cache:
     - '[ -z "$OUTPUT_SCRIPT_FILE" ] && echo -e "${TXT_RED}OUTPUT_SCRIPT_FILE is Empty" && exit 1'
     - '[ -z "$SSH_HOST_WORK_DIR" ] && echo -e "${TXT_RED}SSH_HOST_WORK_DIR is Empty" && exit 1'
     - 'export PROV_FILE_NAME=$CATEGORY-$DATABASE-$VERSION.ttl'
+    - '[ -z "$ASKOMICS_REGEX_URL" ] && export ASKOMICS_REGEX_URL=false'
+    - '[ -z "$REGEX_URL" ] && export REGEX_URL=false'
 
   dependencies: [fetch_info_database]
 
