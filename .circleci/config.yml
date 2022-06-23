@@ -37,7 +37,7 @@ workflows:
               ignore: /.*/
       - publish_snapshot:
           requires:
-            - test
+            - tests
           context:
             - DOCKER_CONTEXT
             - CREDENTIAL_CONTEXT
