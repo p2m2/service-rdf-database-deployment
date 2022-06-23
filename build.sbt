@@ -6,6 +6,7 @@ name := "service-rdf-database-deployment"
 organization := "com.github.p2m2"
 organizationName := "p2m2"
 organizationHomepage := Some(url("https://www6.inrae.fr/p2m2"))
+homepage := Some(url("https://github.com/p2m2/service-rdf-database-deployment"))
 licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php"))
 description := "Service to deploy RDF file on a Spark/Hadoop Cluster"
 scmInfo := Some(
