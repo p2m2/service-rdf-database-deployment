@@ -10,7 +10,7 @@ version: 2.1
 workflows:
   docker-publication-workflow:
     jobs:
-      - compile:
+      - tests:
           context:
             - DOCKER_CONTEXT
       # only develop is build and push on dockerhub !
@@ -35,15 +35,42 @@ workflows:
             branches:
               # nothing coming from branch are deployed as latest
               ignore: /.*/
+      - publish_snapshot:
+          requires:
+            - tests
+          context:
+            - DOCKER_CONTEXT
+            - CREDENTIAL_CONTEXT
+            - GPG_CONTEXT
+          filters:
+            tags:
+              ignore: /.*/
+            branches:
+              only:
+                - develop
+                - main
+
+      - publish_tag_to_sonatype_stagge_for_release:
+          context:
+            - DOCKER_CONTEXT
+            - CREDENTIAL_CONTEXT
+            - GPG_CONTEXT
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+
 
 executors:
   openjdk:
     working_directory: ~/repo
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: cimg/openjdk:17.0.2
         auth:
           username: ${DOCKER_USER}
           password: ${DOCKER_PASS}
+
   docker-publisher:
     docker:
       - image: circleci/buildpack-deps:stretch
@@ -52,7 +79,7 @@ executors:
           password: ${DOCKER_PASS}
 
 jobs:
-  compile:
+  tests:
     executor: openjdk
     environment:
       JVM_OPTS: -Xmx3200m
@@ -83,6 +110,7 @@ jobs:
             docker build --build-arg BRANCH=${CIRCLE_BRANCH} -t ${ORGANIZATION_NAME}/${IMAGE_NAME} .
             echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
             docker push ${ORGANIZATION_NAME}/${IMAGE_NAME}
+
   build_tag_latest:
     executor: docker-publisher
     steps:
@@ -101,3 +129,38 @@ jobs:
             echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
             docker push ${ORGANIZATION_NAME}/${IMAGE_NAME}
             docker push ${ORGANIZATION_NAME}/${IMAGE_NAME_LATEST}
+
+  publish_snapshot:
+    executor: openjdk
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: Snapshot publication
+          command: |
+            export VERSION="${CIRCLE_BRANCH}-SNAPSHOT"
+            echo "Importing key"
+            echo -e "$GPG_KEY" | gpg --import
+            sbt +publish
+  publish_tag_to_sonatype_stagge_for_release:
+    executor: openjdk
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: Release publication
+          command: |
+            export VERSION="${CIRCLE_TAG}"
+            echo "Importing key"
+            echo -e "$GPG_KEY" | gpg --import
+            sbt +publish
