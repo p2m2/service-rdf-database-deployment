@@ -22,7 +22,7 @@ developers := List(
 val static_version_build = "0.4.1"
 val version_build = scala.util.Properties.envOrElse("VERSION", static_version_build)
 
-version := "test"
+version := version_build
 
 credentials += {
   val realm = scala.util.Properties.envOrElse("REALM_CREDENTIAL", "" )
