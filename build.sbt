@@ -1,8 +1,7 @@
 lazy val scala212 = "2.12.16"
-lazy val scala213 = "2.13.8"
-lazy val supportedScalaVersions = List(scala212, scala213)
+lazy val supportedScalaVersions = List(scala212)
 
-scalaVersion := scala213
+scalaVersion := scala212
 name := "service-rdf-database-deployment"
 organization := "com.github.p2m2"
 organizationName := "p2m2"
@@ -54,11 +53,13 @@ publishMavenStyle := true
 lazy val rdf4jVersion = "4.0.2"
 lazy val slf4jVersion = "1.7.36"
 lazy val uTestVersion = "0.7.11"
+val sparkVersion      = "3.1.3"
 
 crossScalaVersions := supportedScalaVersions
 
 
 libraryDependencies ++= Seq(
+  "org.apache.spark" %% "spark-sql"  % sparkVersion % "provided,test",
   "com.github.scopt" %% "scopt" % "4.0.1",
   "org.eclipse.rdf4j" % "rdf4j-storage" % rdf4jVersion,
   "com.github.jsonld-java" % "jsonld-java" % "0.13.4",
