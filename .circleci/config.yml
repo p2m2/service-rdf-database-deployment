@@ -128,6 +128,7 @@ jobs:
             docker build --build-arg BRANCH=${CIRCLE_BRANCH} -t ${ORGANIZATION_NAME}/${IMAGE_NAME} .
             echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
             docker push ${ORGANIZATION_NAME}/${IMAGE_NAME}
+
   build_tag_latest:
     executor: docker-publisher
     steps:
@@ -146,6 +147,7 @@ jobs:
             echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
             docker push ${ORGANIZATION_NAME}/${IMAGE_NAME}
             docker push ${ORGANIZATION_NAME}/${IMAGE_NAME_LATEST}
+
   publish_snapshot:
     executor: openjdk
     steps:
