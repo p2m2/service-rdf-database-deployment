@@ -35,9 +35,12 @@ workflows:
             branches:
               # nothing coming from branch are deployed as latest
               ignore: /.*/
+      - test:
+          context:
+            - DOCKER_CONTEXT
       - publish_snapshot:
           requires:
-            - test_coverage
+            - test
           context:
             - DOCKER_CONTEXT
             - CREDENTIAL_CONTEXT
@@ -94,6 +97,21 @@ jobs:
             - v1-dependencies-
       - run:
           name: Compile - test
+          command: cat /dev/null | sbt test
+
+  test:
+    executor: openjdk
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: Tests
           command: cat /dev/null | sbt test
 
   build_branch:
