@@ -1,6 +1,6 @@
 # service-rdf-database-deployment
 
-RDF Konwoledge Graph deployment on the HDFS storage
+RDF knowledge graph deployment on HDFS storage
 
 - RDF files is deploy according the following rules:
   - output directory : rdf/{category}/{database}/${release}

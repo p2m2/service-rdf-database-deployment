@@ -1,18 +1,75 @@
-scalaVersion := "2.13.6"
-name := "service-rdf-database-deployment"
+lazy val scala212 = "2.12.16"
+lazy val supportedScalaVersions = List(scala212)
 
-lazy val rdf4jVersion = "3.7.4"
-lazy val slf4jVersion = "1.7.32"
-lazy val uTestVersion = "0.7.10"
+scalaVersion := scala212
+name := "service-rdf-database-deployment"
+organization := "com.github.p2m2"
+organizationName := "p2m2"
+organizationHomepage := Some(url("https://www6.inrae.fr/p2m2"))
+homepage := Some(url("https://github.com/p2m2/service-rdf-database-deployment"))
+licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php"))
+description := "Service to deploy RDF file on a Spark/Hadoop Cluster"
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/p2m2/service-rdf-database-deployment"),
+    "scm:git@github.com:p2m2/service-rdf-database-deployment.git"
+  )
+)
+
+developers := List(
+  Developer("ofilangi", "Olivier Filangi", "olivier.filangi@inrae.fr",url("https://github.com/ofilangi"))
+)
+val static_version_build = "0.4.1"
+val version_build = scala.util.Properties.envOrElse("VERSION", static_version_build)
+
+version := version_build
+
+credentials += {
+  val realm = scala.util.Properties.envOrElse("REALM_CREDENTIAL", "" )
+  val host = scala.util.Properties.envOrElse("HOST_CREDENTIAL", "" )
+  val login = scala.util.Properties.envOrElse("LOGIN_CREDENTIAL", "" )
+  val pass = scala.util.Properties.envOrElse("PASSWORD_CREDENTIAL", "" )
+
+  val file_credential = Path.userHome / ".sbt" / ".credentials"
+
+  if (reflect.io.File(file_credential).exists) {
+    Credentials(file_credential)
+  } else {
+    Credentials(realm,host,login,pass)
+  }
+}
+
+publishTo := {
+  if (isSnapshot.value)
+    Some("Sonatype Snapshots Nexus" at "https://oss.sonatype.org/content/repositories/snapshots")
+  else
+    Some("Sonatype Snapshots Nexus" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+}
+
+publishConfiguration := publishConfiguration.value.withOverwrite(true)
+publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
+pomIncludeRepository := { _ => false }
+publishMavenStyle := true
+
+lazy val rdf4jVersion = "4.2.3"
+lazy val slf4jVersion = "2.0.5"
+lazy val uTestVersion = "0.8.1"
+val sparkVersion      = "3.3.2"
+
+crossScalaVersions := supportedScalaVersions
+
 
 libraryDependencies ++= Seq(
-  "com.github.scopt" %% "scopt" % "4.0.1",
+  "org.apache.spark" %% "spark-sql"  % sparkVersion % "provided,test",
+  "com.github.scopt" %% "scopt" % "4.1.0",
   "org.eclipse.rdf4j" % "rdf4j-storage" % rdf4jVersion,
-  "com.github.jsonld-java" % "jsonld-java" % "0.13.3",
+  "com.github.jsonld-java" % "jsonld-java" % "0.13.4",
   "org.slf4j" % "slf4j-api" % slf4jVersion,
   "org.slf4j" % "slf4j-simple" % slf4jVersion,
   "com.lihaoyi" %% "utest" % uTestVersion % "test"
 )
+
+
 Test / parallelExecution := false
 testFrameworks += new TestFramework("utest.runner.Framework")
 
