@@ -137,7 +137,7 @@ case object ServiceRdfDatabaseDeployment extends App {
         }
 
         def buildScript(
-                         files: Seq[String],
+                         filesIn: Seq[String],
                          output: File,
                          category: String,
                          databaseName: String,
@@ -150,6 +150,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                          startDate : String
                        ): Unit = {
 
+                val files = filesIn.map(_.trim()).filter(_.nonEmpty).filter(_!="\\")
                 new File(output.getPath).delete()
 
                 val bw = new BufferedWriter(new FileWriter(new File(output.getPath)))
@@ -159,6 +160,7 @@ case object ServiceRdfDatabaseDeployment extends App {
                 val dirProvData = s"${rootPathDatabasesHdfsCluster}/prov/"
                 val wgetOpt = "--spider -nv -r -nd --no-parent -e robots=off"
                 bw.write("#!/bin/bash\n")
+                bw.write("set -e\n")
 
                 bw.write(s"$hdfs dfs -mkdir -p ${dirData}\n")
                 bw.write(s"$hdfs dfs -mkdir -p ${dirAskOmicsAbstraction}\n")
@@ -171,9 +173,16 @@ case object ServiceRdfDatabaseDeployment extends App {
                 ).foreach(
                         x => {
                                 /* get files names */
-                                bw.write("FILES=$(wget "+s"$wgetOpt -A "+ "\"$(basename "+x+")\"" +
-                                  " $(dirname "+x+")/ 2>&1 | egrep \"200[[:blank:]]+OK$\" | awk '{print $4}')\n")
-
+                                // only if joker "*." on the base name
+                                if (x.split("/").lastOption.exists(_.contains("*"))) {
+                                        bw.write("## USING JOKER METHOD : " + x + "\n")
+                                        bw.write("FILES=$(wget " + s"$wgetOpt -A " + "\"$(basename " + x + ")\"" +
+                                          " $(dirname " + x + ")/ 2>&1 | egrep \"200[[:blank:]]+OK$\" | awk '{print $4}')\n")
+                                        bw.write("[ -z \"$FILES\" ] && echo \"Can not find FILES with the special character '*' " +
+                                          "and this url=" + x + "\" && exit 1\n")
+                                } else {
+                                        bw.write("FILES=\""+x+"\"\n")
+                                }
                                 bw.write("for file in $FILES\n")
                                 bw.write("do\n")
                                 bw.write("if [ \"${file: -3}\" == \".gz\" ]; then\n")
@@ -188,27 +197,26 @@ case object ServiceRdfDatabaseDeployment extends App {
                 )
 
                 files.filter(
-                        x => ! x.matches("^(http|https|ftp)://.*$")
-                ).foreach(
-                        x => x match {
-                                case file if file.endsWith(".gz") => {
-                                        bw.write("file_expr=$(basename "+file+")\n")
-                                        bw.write("for file in $(ls $file_expr 2>/dev/null)\n")
-                                        bw.write("do\n")
-                                        bw.write("gunzip -c $file "+s"| $hdfs dfs -put - " +
-                                          s"${dirData}"+"/$(basename ${file%.gz})\n")
-                                        bw.write("done\n")
-                                }
-                                case _ => {
-                                        bw.write(s"$hdfs"+" dfs -put -f $(basename "+x+") "+s"${dirData}\n")
-                                }
+                        x => !x.matches("^(http|https|ftp)://.*$")
+                ).foreach {
+                        case file if file.endsWith(".gz") => {
+                                bw.write("file_expr=$(basename " + file + ")\n")
+                                bw.write("for file in $(ls $file_expr 2>/dev/null)\n")
+                                bw.write("do\n")
+                                bw.write("gunzip -c $file " + s"| $hdfs dfs -put - " +
+                                  s"${dirData}" + "/$(basename ${file%.gz})\n")
+                                bw.write("done\n")
+                        }
+                        case x =>
+                                bw.write(s"$hdfs" + " dfs -put -f $(basename " + x + ") " + s"${dirData}\n")
 
-                        })
+                }
 
-                abstraction_askomics match {
+                abstraction_askomics.map(_.trim()).filter(_.nonEmpty) match {
                         case Some(file) if file.endsWith(".ttl") =>
                                 if ( file.matches("^(http|https|ftp)://.*$"))
                                         bw.write(s"wget $file\n")
+
                                 bw.write(s"$hdfs dfs -put -f "+"$("+s"basename $file) " +
                                   s"${dirAskOmicsAbstraction}/"+"$("+s"basename $file)\n")
                         case Some( f ) => System.err.println(s"Can not manage this Askomics extension file ${f}")

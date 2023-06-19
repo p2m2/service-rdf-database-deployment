@@ -51,17 +51,17 @@ publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
 pomIncludeRepository := { _ => false }
 publishMavenStyle := true
 
-lazy val rdf4jVersion = "4.0.2"
-lazy val slf4jVersion = "1.7.36"
-lazy val uTestVersion = "0.7.11"
-val sparkVersion      = "3.1.3"
+lazy val rdf4jVersion = "4.2.3"
+lazy val slf4jVersion = "2.0.5"
+lazy val uTestVersion = "0.8.1"
+val sparkVersion      = "3.3.2"
 
 crossScalaVersions := supportedScalaVersions
 
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql"  % sparkVersion % "provided,test",
-  "com.github.scopt" %% "scopt" % "4.0.1",
+  "com.github.scopt" %% "scopt" % "4.1.0",
   "org.eclipse.rdf4j" % "rdf4j-storage" % rdf4jVersion,
   "com.github.jsonld-java" % "jsonld-java" % "0.13.4",
   "org.slf4j" % "slf4j-api" % slf4jVersion,
